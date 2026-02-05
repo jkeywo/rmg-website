@@ -298,22 +298,31 @@ async function loadGames(){
   games.forEach(g=>{
     g.dateObj=new Date(g.date);
     g.isPast=g.dateObj<now;
+
+    if (g.photos) {
+      g.photoList = g.photos
+        .split(',')
+        .map(p => p.trim())
+        .filter(Boolean);
+    } else {
+      g.photoList = [];
+    }
   });
 
   return games;
 }
 
 /* -------- PHOTO AUTO NUMBER -------- */
-function buildGalleryHTML(slug){
-  let html='<div class="gallery">';
+function buildGalleryHTML(slug, photoList){
+    if (photoList.length === 0) return '';
 
-  for(let i=1;i<=50;i++){
-    const src=`photos/${slug}/${i}.jpg`;
-    html+=`<img src="${src}" loading="lazy" onclick="openLightbox('${src}')" onerror="this.remove()">`;
-  }
+    let html = '<h2>Photos</h2><div class="gallery">';
+    photoList.forEach(name => {
+        html += `<img src="photos/${slug}/${name}" loading="lazy">`;
+    });
 
-  html+='</div>';
-  return html;
+    html += '</div>';
+    return html;
 }
 
 /* -------- LIGHTBOX -------- */
@@ -382,7 +391,7 @@ async function render(){
       <p><strong>Venue:</strong> ${g.venue}</p>
       ${!g.isPast&&g.tickets?`<a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>`:''}
       <div class="markdown">${md(g.description)}</div>
-      ${g.isPast?`<h2>Photos</h2>${buildGalleryHTML(g.slug)}`:''}
+      ${g.isPast?`${buildGalleryHTML(g.slug, g.photoList)}`:''}
     `;
     return;
   }
