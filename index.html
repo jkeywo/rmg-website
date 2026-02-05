@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reading Megagames</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+      color: #111827;
+    }
+
+    header {
+      background: #f3f4f6;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    nav a {
+      color: #111827;
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    nav a:hover { color: #3574B9; }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 1.5rem;
+    }
+
+    h1, h2 { color: #3574B9; }
+
+    .highlight {
+      border: 2px solid #3574B9;
+      padding: 1.2rem;
+      border-radius: 14px;
+      background: #ffffff;
+    }
+
+    .banner {
+      width: 100%;
+      max-height: 380px;
+      object-fit: cover;
+      border-radius: 14px;
+      margin-bottom: 1rem;
+    }
+
+    /* -------- CAROUSEL -------- */
+    .carousel {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .carousel img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: 14px;
+    }
+
+    .carousel button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.6);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      padding: 0.4rem 0.7rem;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    .carousel .prev { left: 10px; }
+    .carousel .next { right: 10px; }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .list-img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .gallery img {
+      width: 100%;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    /* LIGHTBOX */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 1rem;
+    }
+
+    .lightbox img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+    }
+
+    .ticket-btn {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      background: #3574B9;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .cta-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    input[type=email] {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 2rem;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    /* -------- MOBILE -------- */
+    @media (max-width: 900px) {
+      .home-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .carousel img {
+        height: 220px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 1rem; }
+
+      header {
+        padding: 0.8rem 1rem;
+      }
+
+      .carousel img {
+        height: 180px;
+      }
+
+      .banner {
+        max-height: 240px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div><img src="logos/RMG Logotype.png" alt-text="Reading Megagames" height="64px" /></div>
+  <nav>
+    <a onclick="navigate('home')">HOME</a>
+    <a onclick="navigate('upcoming')">Upcoming Games</a>
+    <a onclick="navigate('past')">Past Games</a>
+    <a onclick="navigate('about')">About Us</a>
+  </nav>
+</header>
+
+<div id="app" class="container"></div>
+
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img">
+</div>
+
+<footer>
+  © Reading Megagames • Contact: <a href="mailto:info@readingmegagames.com">info@readingmegagames.com</a>
+</footer>
+
+<script>
+
+/* -------- MARKDOWN -------- */
+function md(text) {
+  if (!text) return '';
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .split('\n\n')
+    .map(p => `<p>${p}</p>`)
+    .join('');
+}
+
+/* -------- NEON -------- */
+function parseNeon(text) {
+  const lines = text.split(/\r?\n/);
+  const games = [];
+  let current = null, key=null, buffer=[];
+
+  function flush(){
+    if(current && key) current[key]=buffer.join('\n').trim();
+    buffer=[];
+  }
+
+  lines.forEach(line=>{
+    if(line.trim()==='-'){
+      flush(); if(current) games.push(current);
+      current={}; key=null; return;
+    }
+
+    const m=line.match(/^([a-zA-Z0-9]+):\s*(.*)$/);
+    if(m){
+      flush(); key=m[1];
+      if(m[2]==='|') buffer=[];
+      else {current[key]=m[2]; key=null;}
+      return;
+    }
+
+    if(key) buffer.push(line);
+  });
+
+  flush(); if(current) games.push(current);
+  return games;
+}
+
+/* -------- LOAD -------- */
+async function loadGames(){
+  const res=await fetch('games.neon');
+  const text=await res.text();
+  const games=parseNeon(text);
+  const now=new Date();
+
+  games.forEach(g=>{
+    g.dateObj=new Date(g.date);
+    g.isPast=g.dateObj<now;
+  });
+
+  return games;
+}
+
+/* -------- PHOTO AUTO NUMBER -------- */
+function buildGalleryHTML(slug){
+  let html='<div class="gallery">';
+
+  for(let i=1;i<=50;i++){
+    const src=`photos/${slug}/${i}.jpg`;
+    html+=`<img src="${src}" loading="lazy" onclick="openLightbox('${src}')" onerror="this.remove()">`;
+  }
+
+  html+='</div>';
+  return html;
+}
+
+/* -------- LIGHTBOX -------- */
+function openLightbox(src){
+  const lb=document.getElementById('lightbox');
+  document.getElementById('lightbox-img').src=src;
+  lb.style.display='flex';
+}
+
+function closeLightbox(){
+  document.getElementById('lightbox').style.display='none';
+}
+
+/* -------- CAROUSEL -------- */
+const carouselImages=[
+  'carousel/1.avif',
+  'carousel/2.avif',
+  'carousel/3.avif',
+  'carousel/4.avif'
+];
+
+let carouselIndex=0;
+
+function carouselHTML(){
+  return `
+    <div class="carousel">
+      <img id="carousel-img" src="${carouselImages[0]}">
+      <button class="prev" onclick="carouselMove(-1)">‹</button>
+      <button class="next" onclick="carouselMove(1)">›</button>
+    </div>`;
+}
+
+function carouselMove(dir){
+  carouselIndex=(carouselIndex+dir+carouselImages.length)%carouselImages.length;
+  document.getElementById('carousel-img').src=carouselImages[carouselIndex];
+}
+
+/* Auto‑advance every 10 seconds */
+setInterval(()=>{
+  if(document.getElementById('carousel-img')){
+    carouselMove(1);
+  }
+},10000);
+
+/* -------- ROUTER -------- */
+function navigate(p){location.hash=p; render();}
+window.addEventListener('hashchange',render);
+
+/* -------- RENDER -------- */
+async function render(){
+  const app=document.getElementById('app');
+  const hash=location.hash.replace('#','')||'home';
+  const games=await loadGames();
+
+  const upcoming=games.filter(g=>!g.isPast).sort((a,b)=>a.dateObj-b.dateObj);
+  const past=games.filter(g=>g.isPast).sort((a,b)=>b.dateObj-a.dateObj);
+
+  if(hash.startsWith('game/')){
+    const slug=hash.split('/')[1];
+    const g=games.find(x=>x.slug===slug);
+
+    app.innerHTML=`
+      <h1>${g.name}</h1>
+      ${g.bannerImage?`<img class="banner" src="${g.bannerImage}">`:''}
+      <p><strong>Date:</strong> ${g.date}</p>
+      <p><strong>Venue:</strong> ${g.venue}</p>
+      ${!g.isPast&&g.tickets?`<a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>`:''}
+      <div class="markdown">${md(g.description)}</div>
+      ${g.isPast?`<h2>Photos</h2>${buildGalleryHTML(g.slug)}`:''}
+    `;
+    return;
+  }
+
+  if(hash==='home'){
+    const next=upcoming[0];
+
+    app.innerHTML=`
+      <h1>Welcome to Reading Megagames</h1>
+
+      <div class="home-grid">
+
+        <div>
+          ${carouselHTML()}
+
+          ${next?`
+            <div class="highlight">
+              <h2>Next Event: ${next.name}</h2>
+              ${next.bannerImage?`<img class="banner" src="${next.bannerImage}">`:''}
+              <p><em>${next.tagline||''}</em></p>
+              <p><strong>Date:</strong> ${next.date}</p>
+              <a onclick="navigate('game/${next.slug}')" class="ticket-btn">Details</a>
+              <a class="ticket-btn" href="${next.tickets}" target="_blank">Tickets</a>
+            </div>`:''}
+        </div>
+
+        <div class="sidebar">
+            <div class="cta-box">
+                <p>Megagames are an exciting hybrid of board gaming, roleplay, LARP, and Model UN. With player counts ranging from 25-100, usually played in loose teams with both co-operative and competitive elements.</p>
+                <p>Diplomacy or treachery, grand strategy or opportunism. What story will you tell?</p>
+            </div>
+          <div class="cta-box">
+            <h2>Join Our Community</h2>
+            <p><a class="ticket-btn" href="https://discord.gg/3UD7cRbv37" target="_blank">Discord Server</a></p>
+          </div>
+
+          <div>
+            <iframe class="Z8YsjS" title="Mailing Lst" name="htmlComp-iframe" width="100%" height="275px" allow="fullscreen" data-src="" src="https://www-readingmegagames-com.filesusr.com/html/9e54e1_9eef650b3ae8b6075994be8d68a72835.html"></iframe>
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  if(hash==='about'){
+    app.innerHTML=`
+      <h1>About Us</h1>
+        <p>Reading Megagames are a small group of local hobbyists who enjoy designing, running and playing megagames. We’ve been active since 2018, running a mix of home-brewed and imported games.</p>
+        <p><i>Due to the nature of the games we currently only run games for players aged 18 and over.</i></p>
+        <p>We periodically run megagames in the Reading area - large-scale games combining elements of board gaming, roleplay, and negotiation. Expect us to run around four games a year - if there isn’t one in the calendar right now, ask to be added to our mailing list and we’ll let you know when the next one is organised.</p>
+        <p>For information on megagames from other groups you can visit <a href="https://www.megagameassembly.com/">megagameassembly.com</a></p>
+        <h1>Code of Conduct</h1>
+        <p>Reading Megagames believes in promoting diversity and inclusion - it enables us to create a safe, fun and welcoming environment in our games, it’s the best and healthiest way to help the megagame community grow, and it’s just the right thing to do.</p>
+        <p>To that end:
+        <ul><li>It will always be our highest priority to ensure that the megagames we run are safe environments for the players and the facilitator team.</li>
+        <li>All forms of discrimination, including sexism, racism, homophobia and transphobia, are unacceptable at games run by Reading Megagames, and may result in expulsion from the game without further discussion.</li>
+        <li>Any harassment or abuse of players or facilitators is likewise unacceptable and may also result in expulsion from the game without further discussion.</li>
+        <li>Players at one of our games experiencing discriminatory or abusive behaviour are encouraged to report it immediately to the facilitator team for the game, who will treat it with the utmost seriousness.</li>
+        </ul></p>
+        <p>Note: we are aware that megagames include elements of roleplaying, and that good-faith attempts to roleplay aggressive or demanding characters may nevertheless be upsetting to others. Where appropriate, we will discuss these situations with players, and provided they are willing to change their behaviour accordingly, no further action will be taken.</p>
+        <p>We understand that there is always room for improvement in the area of diversity and inclusion, and we welcome feedback on this code of conduct or any other aspect of how we manage our games and community.</p>`;
+  }
+
+  if(hash==='upcoming'){
+    app.innerHTML='<h1>Upcoming Games</h1><div class="games-grid"></div>';
+    const grid=app.querySelector('.games-grid');
+
+    upcoming.forEach(g=>{
+      grid.innerHTML+=`
+        <div class="card">
+          ${g.listImage?`<img class="list-img" src="${g.listImage}" onclick="navigate('game/${g.slug}')">`:''}
+          <h2 onclick="navigate('game/${g.slug}')">${g.name}</h2>
+          <p>${g.date}, ${g.location||''}</p>
+          <p>${g.tagline||''}</p>
+          <a onclick="navigate('game/${g.slug}')" class="ticket-btn">Details</a>
+          <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
+        </div>`;
+    });
+  }
+
+  if(hash==='past'){
+    app.innerHTML='<h1>Past Games</h1><div class="games-grid"></div>';
+    const grid=app.querySelector('.games-grid');
+
+    past.forEach(g=>{
+      grid.innerHTML+=`
+        <div class="card">
+          ${g.listImage?`<img class="list-img" src="${g.listImage}" onclick="navigate('game/${g.slug}')">`:''}
+          <h2 onclick="navigate('game/${g.slug}')">${g.name}</h2>
+          <p>${g.date}</p>
+          <p>${g.tagline||''}</p>
+          <a onclick="navigate('game/${g.slug}')" class="ticket-btn">View</a>
+        </div>`;
+    });
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
