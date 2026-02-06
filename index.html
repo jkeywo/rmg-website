@@ -298,7 +298,11 @@ function parseNeon(text) {
 
 /* -------- LOAD -------- */
 async function loadGames(){
-  const res=await fetch('games.neon');
+
+  var parser = new URL(window.location);
+  var games_source = parser.searchParams.get("source") || 'games.neon';
+
+  const res=await fetch(games_source);
   const text=await res.text();
   const games=parseNeon(text);
   const now=new Date();
@@ -407,7 +411,7 @@ async function render(){
   if(hash==='home'){
     const next=upcoming[0];
 
-    app.innerHTML=`
+    var innerHTML=`
       <h1>Welcome to Reading Megagames</h1>
 
       <div class="home-grid">
@@ -417,32 +421,61 @@ async function render(){
 
           ${next?`
             <div class="highlight">
-              <h2>Next Event: ${next.name}</h2>
-              ${next.bannerImage?`<img class="banner" src="${next.bannerImage}">`:''}
-              <p><em>${next.tagline||''}</em></p>
-              <p><strong>Date:</strong> ${next.date}</p>
+              <h2 onclick="navigate('game/${next.slug}')">Next Event: ${next.name}</h2>
+              ${next.bannerImage?`<img class="list-img" src="${next.bannerImage}" onclick="navigate('game/${next.slug}')">`:''}
+              <p>${next.date}</p><p>${next.venue||''}</p>
+              ${next.theme||next.complexity?`<p>
+                ${next.theme?`<img height="24px" src="logos/theme.png" /> ${next.theme}`:''} 
+                ${next.complexity?`<img height="24px" src="logos/complexity.png" /> ${next.complexity}`:''}
+              </p>`:''}
+              <p>${next.tagline||''}</p>
               <a onclick="navigate('game/${next.slug}')" class="ticket-btn">Details</a>
               <a class="ticket-btn" href="${next.tickets}" target="_blank">Tickets</a>
-            </div>`:''}
-        </div>
+            </div>`:''}`;
+
+    skip = true;
+    upcoming.forEach(g=>{
+        if(skip) {
+          skip = false;
+        } else {
+            innerHTML += `<div class="card">
+                            <table width="100%"><tr>
+                              <td style="padding:4px">
+                                <a onclick="navigate('game/${g.slug}')" class="ticket-btn">Details</a>
+                                <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
+                              </td>
+                              <td style="padding:4px" onclick="navigate('game/${g.slug}')">
+                                <strong>${g.name}</strong> (${g.date}, ${g.location})
+                                <br />${g.tagline||''}
+                              </td>
+                              <td style="padding:4px" onclick="navigate('game/${g.slug}')">
+                                ${g.listImage?`<img class="list-img" style="height: 70px;" src="${g.listImage}">`:''}
+                              </td>
+                            </tr></table>
+                          </div>`
+        }
+      });
+    innerHTML +=           
+        `</div>
 
         <div class="sidebar">
-            <div class="cta-box">
+            <div style="font-size:large">
                 <p>Megagames are an exciting hybrid of board gaming, roleplay, LARP, and Model UN. With player counts ranging from 25-100, usually played in loose teams with both co-operative and competitive elements.</p>
                 <p>Diplomacy or treachery, grand strategy or opportunism. What story will you tell?</p>
             </div>
           <div class="cta-box">
             <h2>Join Our Community</h2>
-            <p><a class="ticket-btn" href="https://discord.gg/3UD7cRbv37" target="_blank">Discord Server</a></p>
+            <p><a href="https://discord.gg/3UD7cRbv37" target="_blank"><img src="logos/discord.png" height="32px" />Discord Server</a></p>
           </div>
 
           <div>
-            <iframe class="Z8YsjS" title="Mailing Lst" name="htmlComp-iframe" width="100%" height="275px" allow="fullscreen" data-src="" src="https://www-readingmegagames-com.filesusr.com/html/9e54e1_9eef650b3ae8b6075994be8d68a72835.html"></iframe>
+            <iframe frameBorder="0" class="Z8YsjS" title="Mailing Lst" name="htmlComp-iframe" width="100%" height="275px" allow="fullscreen" data-src="" src="https://www-readingmegagames-com.filesusr.com/html/9e54e1_9eef650b3ae8b6075994be8d68a72835.html"></iframe>
           </div>
         </div>
 
       </div>
     `;
+    app.innerHTML = innerHTML;
   }
 
   if(hash==='about'){
@@ -473,7 +506,8 @@ async function render(){
         <div class="card">
           ${g.listImage?`<img class="list-img" src="${g.listImage}" onclick="navigate('game/${g.slug}')">`:''}
           <h2 onclick="navigate('game/${g.slug}')">${g.name}</h2>
-          <p>${g.date}, ${g.location||''}</p>
+          <p>${g.date}</p><p>${g.venue||''}</p>
+          ${g.theme||g.complexity?`<p>${g.theme?`<img height="24px" src="logos/theme.png" /> ${g.theme}`:''} ${g.complexity?`<img height="24px" src="logos/complexity.png" /> ${g.complexity}`:''}</p>`:''}
           <p>${g.tagline||''}</p>
           <a onclick="navigate('game/${g.slug}')" class="ticket-btn">Details</a>
           <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
