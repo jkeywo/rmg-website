@@ -16,6 +16,11 @@ header {
   gap: 0.5rem;
 }
 
+.site-logo img {
+  height: 64px;
+  width: auto;
+}
+
 nav {
   display: flex;
   flex-wrap: wrap;

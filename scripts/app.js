@@ -199,7 +199,7 @@ async function render() {
       ${g.bannerImage ? `<img class="banner" src="${g.bannerImage}">` : ''}
       <p><strong>Date:</strong> ${g.date}</p>
       <p><strong>Venue:</strong> ${g.venue}</p>
-      ${!g.isPast && g.tickets ? `<a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>` : ''}
+      ${!g.isPast && g.tickets ? `<a class="ticket-btn" href="${g.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>` : ''}
       <div class="markdown">${md(g.description)}</div>
       ${g.isPast ? `${buildGalleryHTML(g.slug, g.photoList)}` : ''}
     `;
@@ -209,7 +209,7 @@ async function render() {
   if (hash === 'home') {
     const next = upcoming[0];
 
-    var innerHTML = `
+    let innerHTML = `
       <h1>Welcome to Reading Megagames</h1>
 
       <div class="home-grid">
@@ -228,7 +228,7 @@ async function render() {
               </p>` : ''}
               <p>${next.tagline || ''}</p>
               <a href="#game/${next.slug}" data-route="game/${next.slug}" class="ticket-btn">Details</a>
-              <a class="ticket-btn" href="${next.tickets}" target="_blank">Tickets</a>
+              <a class="ticket-btn" href="${next.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>
             </div>` : ''}`;
 
     innerHTML += upcoming.slice(1).map(g => `
@@ -236,7 +236,7 @@ async function render() {
         <div class="compact-event">
           <div class="compact-event-actions">
             <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
-            <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
+            <a class="ticket-btn" href="${g.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>
           </div>
           <div class="compact-event-details" data-route="game/${g.slug}">
             <strong>${g.name}</strong> (${g.date}, ${g.location})
@@ -259,7 +259,7 @@ async function render() {
             </div>
           <div class="cta-box">
             <h2>Join Our Community</h2>
-            <p><a class="community-link" href="https://discord.gg/3UD7cRbv37" target="_blank"><img src="logos/discord.png" alt="" />Discord Server</a></p>
+            <p><a class="community-link" href="https://discord.gg/3UD7cRbv37" target="_blank" rel="noopener noreferrer"><img src="logos/discord.png" alt="" />Discord Server</a></p>
           </div>
 
           <div>
@@ -281,12 +281,12 @@ async function render() {
         <p>For information on megagames from other groups you can visit <a href="https://www.megagameassembly.com/">megagameassembly.com</a></p>
         <h1>Code of Conduct</h1>
         <p>Reading Megagames believes in promoting diversity and inclusion - it enables us to create a safe, fun and welcoming environment in our games, it&rsquo;s the best and healthiest way to help the megagame community grow, and it&rsquo;s just the right thing to do.</p>
-        <p>To that end:
+        <p>To that end:</p>
         <ul><li>It will always be our highest priority to ensure that the megagames we run are safe environments for the players and the facilitator team.</li>
         <li>All forms of discrimination, including sexism, racism, homophobia and transphobia, are unacceptable at games run by Reading Megagames, and may result in expulsion from the game without further discussion.</li>
         <li>Any harassment or abuse of players or facilitators is likewise unacceptable and may also result in expulsion from the game without further discussion.</li>
         <li>Players at one of our games experiencing discriminatory or abusive behaviour are encouraged to report it immediately to the facilitator team for the game, who will treat it with the utmost seriousness.</li>
-        </ul></p>
+        </ul>
         <p>Note: we are aware that megagames include elements of roleplaying, and that good-faith attempts to roleplay aggressive or demanding characters may nevertheless be upsetting to others. Where appropriate, we will discuss these situations with players, and provided they are willing to change their behaviour accordingly, no further action will be taken.</p>
         <p>We understand that there is always room for improvement in the area of diversity and inclusion, and we welcome feedback on this code of conduct or any other aspect of how we manage our games and community.</p>`;
   }
@@ -303,7 +303,7 @@ async function render() {
           ${g.theme || g.complexity ? `<p class="event-meta-icons">${g.theme ? `<span><img src="logos/theme.png" alt=""> ${g.theme}</span>` : ''} ${g.complexity ? `<span><img src="logos/complexity.png" alt=""> ${g.complexity}</span>` : ''}</p>` : ''}
           <p>${g.tagline || ''}</p>
           <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
-          <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
+          <a class="ticket-btn" href="${g.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>
         </div>
       `).join('');
   }
