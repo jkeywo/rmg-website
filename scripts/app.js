@@ -231,28 +231,24 @@ async function render() {
               <a class="ticket-btn" href="${next.tickets}" target="_blank">Tickets</a>
             </div>` : ''}`;
 
-    skip = true;
-    upcoming.forEach(g => {
-      if (skip) {
-        skip = false;
-      } else {
-        innerHTML += `<div class="card">
-                            <table width="100%"><tr>
-                              <td style="padding:4px">
-                                <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
-                                <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
-                              </td>
-                              <td style="padding:4px" data-route="game/${g.slug}">
-                                <strong>${g.name}</strong> (${g.date}, ${g.location})
-                                <br />${g.tagline || ''}
-                              </td>
-                              <td style="padding:4px" data-route="game/${g.slug}">
-                                ${g.listImage ? `<img class="list-img" style="height: 70px;" src="${g.listImage}">` : ''}
-                              </td>
-                            </tr></table>
-                          </div>`;
-      }
-    });
+    innerHTML += upcoming.slice(1).map(g => `
+      <div class="card">
+        <table width="100%"><tr>
+          <td style="padding:4px">
+            <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
+            <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
+          </td>
+          <td style="padding:4px" data-route="game/${g.slug}">
+            <strong>${g.name}</strong> (${g.date}, ${g.location})
+            <br />${g.tagline || ''}
+          </td>
+          <td style="padding:4px" data-route="game/${g.slug}">
+            ${g.listImage ? `<img class="list-img" style="height: 70px;" src="${g.listImage}">` : ''}
+          </td>
+        </tr></table>
+      </div>
+    `).join('');
+
     innerHTML +=
         `</div>
 
@@ -299,8 +295,7 @@ async function render() {
     app.innerHTML = '<h1>Upcoming Games</h1><div class="games-grid"></div>';
     const grid = app.querySelector('.games-grid');
 
-    upcoming.forEach(g => {
-      grid.innerHTML += `
+    grid.innerHTML = upcoming.map(g => `
         <div class="card">
           ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
           <h2 data-route="game/${g.slug}">${g.name}</h2>
@@ -309,24 +304,23 @@ async function render() {
           <p>${g.tagline || ''}</p>
           <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
           <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
-        </div>`;
-    });
+        </div>
+      `).join('');
   }
 
   if (hash === 'past') {
     app.innerHTML = '<h1>Past Games</h1><div class="games-grid"></div>';
     const grid = app.querySelector('.games-grid');
 
-    past.forEach(g => {
-      grid.innerHTML += `
+    grid.innerHTML = past.map(g => `
         <div class="card">
           ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
           <h2 data-route="game/${g.slug}">${g.name}</h2>
           <p>${g.date}</p>
           <p>${g.tagline || ''}</p>
           <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">View</a>
-        </div>`;
-    });
+        </div>
+      `).join('');
   }
 }
 
