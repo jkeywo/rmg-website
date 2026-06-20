@@ -222,9 +222,9 @@ async function render() {
               <h2 data-route="game/${next.slug}">Next Event: ${next.name}</h2>
               ${next.bannerImage ? `<img class="list-img" src="${next.bannerImage}" data-route="game/${next.slug}">` : ''}
               <p>${next.date}</p><p>${next.venue || ''}</p>
-              ${next.theme || next.complexity ? `<p>
-                ${next.theme ? `<img height="24px" src="logos/theme.png" /> ${next.theme}` : ''} 
-                ${next.complexity ? `<img height="24px" src="logos/complexity.png" /> ${next.complexity}` : ''}
+              ${next.theme || next.complexity ? `<p class="event-meta-icons">
+                ${next.theme ? `<span><img src="logos/theme.png" alt=""> ${next.theme}</span>` : ''} 
+                ${next.complexity ? `<span><img src="logos/complexity.png" alt=""> ${next.complexity}</span>` : ''}
               </p>` : ''}
               <p>${next.tagline || ''}</p>
               <a href="#game/${next.slug}" data-route="game/${next.slug}" class="ticket-btn">Details</a>
@@ -233,19 +233,19 @@ async function render() {
 
     innerHTML += upcoming.slice(1).map(g => `
       <div class="card">
-        <table width="100%"><tr>
-          <td style="padding:4px">
+        <div class="compact-event">
+          <div class="compact-event-actions">
             <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
             <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
-          </td>
-          <td style="padding:4px" data-route="game/${g.slug}">
+          </div>
+          <div class="compact-event-details" data-route="game/${g.slug}">
             <strong>${g.name}</strong> (${g.date}, ${g.location})
-            <br />${g.tagline || ''}
-          </td>
-          <td style="padding:4px" data-route="game/${g.slug}">
-            ${g.listImage ? `<img class="list-img" style="height: 70px;" src="${g.listImage}">` : ''}
-          </td>
-        </tr></table>
+            <p>${g.tagline || ''}</p>
+          </div>
+          <div data-route="game/${g.slug}">
+            ${g.listImage ? `<img class="compact-event-image" src="${g.listImage}">` : ''}
+          </div>
+        </div>
       </div>
     `).join('');
 
@@ -253,17 +253,17 @@ async function render() {
         `</div>
 
         <div class="sidebar">
-            <div style="font-size:large">
+            <div class="home-intro">
                 <p>Megagames are an exciting hybrid of board gaming, roleplay, LARP, and Model UN. With player counts ranging from 25-100, usually played in loose teams with both co-operative and competitive elements.</p>
                 <p>Diplomacy or treachery, grand strategy or opportunism. What story will you tell?</p>
             </div>
           <div class="cta-box">
             <h2>Join Our Community</h2>
-            <p><a href="https://discord.gg/3UD7cRbv37" target="_blank"><img src="logos/discord.png" height="32px" />Discord Server</a></p>
+            <p><a class="community-link" href="https://discord.gg/3UD7cRbv37" target="_blank"><img src="logos/discord.png" alt="" />Discord Server</a></p>
           </div>
 
           <div>
-            <iframe frameBorder="0" class="Z8YsjS" title="Mailing Lst" name="htmlComp-iframe" width="100%" height="275px" allow="fullscreen" data-src="" src="https://www-readingmegagames-com.filesusr.com/html/9e54e1_9eef650b3ae8b6075994be8d68a72835.html"></iframe>
+            <iframe class="mailing-list-frame Z8YsjS" title="Mailing Lst" name="htmlComp-iframe" allow="fullscreen" data-src="" src="https://www-readingmegagames-com.filesusr.com/html/9e54e1_9eef650b3ae8b6075994be8d68a72835.html"></iframe>
           </div>
         </div>
 
@@ -300,7 +300,7 @@ async function render() {
           ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
           <h2 data-route="game/${g.slug}">${g.name}</h2>
           <p>${g.date}</p><p>${g.venue || ''}</p>
-          ${g.theme || g.complexity ? `<p>${g.theme ? `<img height="24px" src="logos/theme.png" /> ${g.theme}` : ''} ${g.complexity ? `<img height="24px" src="logos/complexity.png" /> ${g.complexity}` : ''}</p>` : ''}
+          ${g.theme || g.complexity ? `<p class="event-meta-icons">${g.theme ? `<span><img src="logos/theme.png" alt=""> ${g.theme}</span>` : ''} ${g.complexity ? `<span><img src="logos/complexity.png" alt=""> ${g.complexity}</span>` : ''}</p>` : ''}
           <p>${g.tagline || ''}</p>
           <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
           <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>

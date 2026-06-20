@@ -117,6 +117,61 @@ h2 {
   gap: 1.5rem;
 }
 
+.home-intro {
+  font-size: 1.125rem;
+}
+
+.event-meta-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.event-meta-icons img,
+.community-link img {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+}
+
+.community-link img {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.35rem;
+}
+
+.compact-event {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(90px, 130px);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.compact-event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.compact-event-details p {
+  margin: 0.25rem 0 0;
+}
+
+.compact-event-image {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.mailing-list-frame {
+  width: 100%;
+  height: 275px;
+  border: 0;
+}
+
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -227,6 +282,14 @@ footer {
 
   .carousel img {
     height: 180px;
+  }
+
+  .compact-event {
+    grid-template-columns: 1fr;
+  }
+
+  .compact-event-actions {
+    order: 3;
   }
 
   .banner {
