@@ -42,27 +42,46 @@ function parseNeon(text) {
 }
 
 /* -------- LOAD -------- */
-async function loadGames() {
-  var parser = new URL(window.location);
-  var games_source = parser.searchParams.get("source") || 'games.neon';
+const gamesBySource = new Map();
 
-  const res = await fetch(games_source);
-  const text = await res.text();
-  const games = parseNeon(text);
+function getGamesSource() {
+  const parser = new URL(window.location);
+  return parser.searchParams.get('source') || 'games.neon';
+}
+
+function normalizeGame(game) {
+  return {
+    ...game,
+    dateObj: new Date(game.date),
+    photoList: game.photos
+      ? game.photos
+        .split(',')
+        .map(p => p.trim())
+        .filter(Boolean)
+      : []
+  };
+}
+
+async function loadGames() {
+  const gamesSource = getGamesSource();
+
+  if (!gamesBySource.has(gamesSource)) {
+    const gamesPromise = fetch(gamesSource)
+      .then(res => res.text())
+      .then(text => parseNeon(text).map(normalizeGame))
+      .catch(error => {
+        gamesBySource.delete(gamesSource);
+        throw error;
+      });
+
+    gamesBySource.set(gamesSource, gamesPromise);
+  }
+
+  const games = await gamesBySource.get(gamesSource);
   const now = new Date();
 
   games.forEach(g => {
-    g.dateObj = new Date(g.date);
     g.isPast = g.dateObj < now;
-
-    if (g.photos) {
-      g.photoList = g.photos
-        .split(',')
-        .map(p => p.trim())
-        .filter(Boolean);
-    } else {
-      g.photoList = [];
-    }
   });
 
   return games;
