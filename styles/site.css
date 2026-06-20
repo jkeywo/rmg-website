@@ -39,6 +39,11 @@ a {
   cursor: pointer;
 }
 
+[data-route],
+[data-lightbox-src] {
+  cursor: pointer;
+}
+
 .container {
   max-width: 1100px;
   margin: auto;

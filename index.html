@@ -12,21 +12,21 @@
 <header>
   <div><img src="logos/RMG Logotype.png" alt-text="Reading Megagames" height="64px" /></div>
   <nav>
-    <a onclick="navigate('home')">HOME</a>
-    <a onclick="navigate('upcoming')">Upcoming Games</a>
-    <a onclick="navigate('past')">Past Games</a>
-    <a onclick="navigate('about')">About Us</a>
+    <a href="#home" data-route="home">HOME</a>
+    <a href="#upcoming" data-route="upcoming">Upcoming Games</a>
+    <a href="#past" data-route="past">Past Games</a>
+    <a href="#about" data-route="about">About Us</a>
   </nav>
 </header>
 
 <div id="app" class="container"></div>
 
-<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+<div id="lightbox" class="lightbox" data-lightbox-close>
   <img id="lightbox-img">
 </div>
 
 <footer>
-  &copy; John K 2026 &bull; Contact: <a href="mailto:info@readingmegagames.com">info@readingmegagames.com</a> &bull; <a onclick="navigate('about')">Code of Conduct</a>
+  &copy; John K 2026 &bull; Contact: <a href="mailto:info@readingmegagames.com">info@readingmegagames.com</a> &bull; <a href="#about" data-route="about">Code of Conduct</a>
 </footer>
 
 </body>

@@ -74,7 +74,8 @@ function buildGalleryHTML(slug, photoList) {
 
   let html = '<h2>Photos</h2><div class="gallery">';
   photoList.forEach(name => {
-    html += `<img src="photos/${slug}/${name}" loading="lazy">`;
+    const src = `photos/${slug}/${name}`;
+    html += `<img src="${src}" loading="lazy" data-lightbox-src="${src}">`;
   });
 
   html += '</div>';
@@ -106,8 +107,8 @@ function carouselHTML() {
   return `
     <div class="carousel">
       <img id="carousel-img" src="${carouselImages[0]}">
-      <button class="prev" onclick="carouselMove(-1)">&lsaquo;</button>
-      <button class="next" onclick="carouselMove(1)">&rsaquo;</button>
+      <button class="prev" type="button" data-carousel-step="-1">&lsaquo;</button>
+      <button class="next" type="button" data-carousel-step="1">&rsaquo;</button>
     </div>`;
 }
 
@@ -124,8 +125,42 @@ setInterval(() => {
 }, 10000);
 
 /* -------- ROUTER -------- */
-function navigate(p) { location.hash = p; render(); }
+function navigate(p) {
+  const nextHash = `#${p}`;
+
+  if (location.hash === nextHash) {
+    render();
+  } else {
+    location.hash = p;
+  }
+}
+
 window.addEventListener('hashchange', render);
+
+document.addEventListener('click', event => {
+  const routeTarget = event.target.closest('[data-route]');
+  if (routeTarget) {
+    event.preventDefault();
+    navigate(routeTarget.dataset.route);
+    return;
+  }
+
+  const carouselTarget = event.target.closest('[data-carousel-step]');
+  if (carouselTarget) {
+    carouselMove(Number(carouselTarget.dataset.carouselStep));
+    return;
+  }
+
+  const lightboxTarget = event.target.closest('[data-lightbox-src]');
+  if (lightboxTarget) {
+    openLightbox(lightboxTarget.dataset.lightboxSrc);
+    return;
+  }
+
+  if (event.target.closest('[data-lightbox-close]')) {
+    closeLightbox();
+  }
+});
 
 /* -------- RENDER -------- */
 async function render() {
@@ -165,15 +200,15 @@ async function render() {
 
           ${next ? `
             <div class="highlight">
-              <h2 onclick="navigate('game/${next.slug}')">Next Event: ${next.name}</h2>
-              ${next.bannerImage ? `<img class="list-img" src="${next.bannerImage}" onclick="navigate('game/${next.slug}')">` : ''}
+              <h2 data-route="game/${next.slug}">Next Event: ${next.name}</h2>
+              ${next.bannerImage ? `<img class="list-img" src="${next.bannerImage}" data-route="game/${next.slug}">` : ''}
               <p>${next.date}</p><p>${next.venue || ''}</p>
               ${next.theme || next.complexity ? `<p>
                 ${next.theme ? `<img height="24px" src="logos/theme.png" /> ${next.theme}` : ''} 
                 ${next.complexity ? `<img height="24px" src="logos/complexity.png" /> ${next.complexity}` : ''}
               </p>` : ''}
               <p>${next.tagline || ''}</p>
-              <a onclick="navigate('game/${next.slug}')" class="ticket-btn">Details</a>
+              <a href="#game/${next.slug}" data-route="game/${next.slug}" class="ticket-btn">Details</a>
               <a class="ticket-btn" href="${next.tickets}" target="_blank">Tickets</a>
             </div>` : ''}`;
 
@@ -185,14 +220,14 @@ async function render() {
         innerHTML += `<div class="card">
                             <table width="100%"><tr>
                               <td style="padding:4px">
-                                <a onclick="navigate('game/${g.slug}')" class="ticket-btn">Details</a>
+                                <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
                                 <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
                               </td>
-                              <td style="padding:4px" onclick="navigate('game/${g.slug}')">
+                              <td style="padding:4px" data-route="game/${g.slug}">
                                 <strong>${g.name}</strong> (${g.date}, ${g.location})
                                 <br />${g.tagline || ''}
                               </td>
-                              <td style="padding:4px" onclick="navigate('game/${g.slug}')">
+                              <td style="padding:4px" data-route="game/${g.slug}">
                                 ${g.listImage ? `<img class="list-img" style="height: 70px;" src="${g.listImage}">` : ''}
                               </td>
                             </tr></table>
@@ -248,12 +283,12 @@ async function render() {
     upcoming.forEach(g => {
       grid.innerHTML += `
         <div class="card">
-          ${g.listImage ? `<img class="list-img" src="${g.listImage}" onclick="navigate('game/${g.slug}')">` : ''}
-          <h2 onclick="navigate('game/${g.slug}')">${g.name}</h2>
+          ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
+          <h2 data-route="game/${g.slug}">${g.name}</h2>
           <p>${g.date}</p><p>${g.venue || ''}</p>
           ${g.theme || g.complexity ? `<p>${g.theme ? `<img height="24px" src="logos/theme.png" /> ${g.theme}` : ''} ${g.complexity ? `<img height="24px" src="logos/complexity.png" /> ${g.complexity}` : ''}</p>` : ''}
           <p>${g.tagline || ''}</p>
-          <a onclick="navigate('game/${g.slug}')" class="ticket-btn">Details</a>
+          <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
           <a class="ticket-btn" href="${g.tickets}" target="_blank">Tickets</a>
         </div>`;
     });
@@ -266,11 +301,11 @@ async function render() {
     past.forEach(g => {
       grid.innerHTML += `
         <div class="card">
-          ${g.listImage ? `<img class="list-img" src="${g.listImage}" onclick="navigate('game/${g.slug}')">` : ''}
-          <h2 onclick="navigate('game/${g.slug}')">${g.name}</h2>
+          ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
+          <h2 data-route="game/${g.slug}">${g.name}</h2>
           <p>${g.date}</p>
           <p>${g.tagline || ''}</p>
-          <a onclick="navigate('game/${g.slug}')" class="ticket-btn">View</a>
+          <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">View</a>
         </div>`;
     });
   }
