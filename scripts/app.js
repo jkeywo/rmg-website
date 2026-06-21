@@ -61,6 +61,32 @@ function eventMetaHTML(game) {
   return meta.length ? `<p class="event-meta-icons">${meta.join(' ')}</p>` : '';
 }
 
+function paragraphsHTML(paragraphs) {
+  return paragraphs.map(paragraph => `<p>${escapeHtml(paragraph)}</p>`).join('');
+}
+
+function renderHomeIntro() {
+  return paragraphsHTML(window.siteContent.homeIntro);
+}
+
+function renderAboutHTML() {
+  const { about, conduct } = window.siteContent;
+
+  return `
+    <h1>${escapeHtml(about.heading)}</h1>
+    ${paragraphsHTML([about.paragraphs[0]])}
+    <p><i>${escapeHtml(about.ageNotice)}</i></p>
+    ${paragraphsHTML(about.paragraphs.slice(1))}
+    <p>For information on megagames from other groups you can visit <a href="${escapeAttr(about.assemblyUrl)}">${escapeHtml(about.assemblyLabel)}</a></p>
+    <h1>${escapeHtml(conduct.heading)}</h1>
+    <p>${escapeHtml(conduct.intro)}</p>
+    <p>${escapeHtml(conduct.leadIn)}</p>
+    <ul>${conduct.rules.map(rule => `<li>${escapeHtml(rule)}</li>`).join('')}</ul>
+    <p>${escapeHtml(conduct.note)}</p>
+    <p>${escapeHtml(conduct.closing)}</p>
+  `;
+}
+
 /* -------- MARKDOWN -------- */
 function md(text) {
   if (!text) return '';
@@ -319,8 +345,7 @@ async function render() {
 
         <div class="sidebar">
             <div class="home-intro">
-                <p>Megagames are an exciting hybrid of board gaming, roleplay, LARP, and Model UN. With player counts ranging from 25-100, usually played in loose teams with both co-operative and competitive elements.</p>
-                <p>Diplomacy or treachery, grand strategy or opportunism. What story will you tell?</p>
+                ${renderHomeIntro()}
             </div>
           <div class="cta-box">
             <h2>Join Our Community</h2>
@@ -338,22 +363,7 @@ async function render() {
   }
 
   if (hash === 'about') {
-    app.innerHTML = `
-      <h1>About Us</h1>
-        <p>Reading Megagames are a small group of local hobbyists who enjoy designing, running and playing megagames. We&rsquo;ve been active since 2018, running a mix of home-brewed and imported games.</p>
-        <p><i>Due to the nature of the games we currently only run games for players aged 18 and over.</i></p>
-        <p>We periodically run megagames in the Reading area - large-scale games combining elements of board gaming, roleplay, and negotiation. Expect us to run around four games a year - if there isn&rsquo;t one in the calendar right now, ask to be added to our mailing list and we&rsquo;ll let you know when the next one is organised.</p>
-        <p>For information on megagames from other groups you can visit <a href="https://www.megagameassembly.com/">megagameassembly.com</a></p>
-        <h1>Code of Conduct</h1>
-        <p>Reading Megagames believes in promoting diversity and inclusion - it enables us to create a safe, fun and welcoming environment in our games, it&rsquo;s the best and healthiest way to help the megagame community grow, and it&rsquo;s just the right thing to do.</p>
-        <p>To that end:</p>
-        <ul><li>It will always be our highest priority to ensure that the megagames we run are safe environments for the players and the facilitator team.</li>
-        <li>All forms of discrimination, including sexism, racism, homophobia and transphobia, are unacceptable at games run by Reading Megagames, and may result in expulsion from the game without further discussion.</li>
-        <li>Any harassment or abuse of players or facilitators is likewise unacceptable and may also result in expulsion from the game without further discussion.</li>
-        <li>Players at one of our games experiencing discriminatory or abusive behaviour are encouraged to report it immediately to the facilitator team for the game, who will treat it with the utmost seriousness.</li>
-        </ul>
-        <p>Note: we are aware that megagames include elements of roleplaying, and that good-faith attempts to roleplay aggressive or demanding characters may nevertheless be upsetting to others. Where appropriate, we will discuss these situations with players, and provided they are willing to change their behaviour accordingly, no further action will be taken.</p>
-        <p>We understand that there is always room for improvement in the area of diversity and inclusion, and we welcome feedback on this code of conduct or any other aspect of how we manage our games and community.</p>`;
+    app.innerHTML = renderAboutHTML();
   }
 
   if (hash === 'upcoming') {
