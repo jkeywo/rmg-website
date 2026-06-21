@@ -1,7 +1,70 @@
+/* -------- HTML HELPERS -------- */
+const htmlEscapes = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;'
+};
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, character => htmlEscapes[character]);
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+
+function pathSegment(value) {
+  return encodeURIComponent(String(value ?? '')).replace(/%2F/gi, '');
+}
+
+function gameRoute(game) {
+  return `game/${encodeURIComponent(game.slug || '')}`;
+}
+
+function routeAttrs(game) {
+  const route = escapeAttr(gameRoute(game));
+  return `href="#${route}" data-route="${route}"`;
+}
+
+function dataRouteAttr(game) {
+  return `data-route="${escapeAttr(gameRoute(game))}"`;
+}
+
+function ticketsLink(game) {
+  if (!game.tickets) return '';
+  return `<a class="ticket-btn" href="${escapeAttr(game.tickets)}" target="_blank" rel="noopener noreferrer">Tickets</a>`;
+}
+
+function detailsLink(game, label = 'Details') {
+  return `<a ${routeAttrs(game)} class="ticket-btn">${escapeHtml(label)}</a>`;
+}
+
+function gameImage(game, key, className, attrs = '') {
+  if (!game[key]) return '';
+  const extraAttrs = attrs ? ` ${attrs}` : '';
+  return `<img class="${escapeAttr(className)}" src="${escapeAttr(game[key])}" alt="${escapeAttr(game.name || '')}"${extraAttrs}>`;
+}
+
+function eventMetaHTML(game) {
+  const meta = [];
+
+  if (game.theme) {
+    meta.push(`<span><img src="logos/theme.png" alt=""> ${escapeHtml(game.theme)}</span>`);
+  }
+
+  if (game.complexity) {
+    meta.push(`<span><img src="logos/complexity.png" alt=""> ${escapeHtml(game.complexity)}</span>`);
+  }
+
+  return meta.length ? `<p class="event-meta-icons">${meta.join(' ')}</p>` : '';
+}
+
 /* -------- MARKDOWN -------- */
 function md(text) {
   if (!text) return '';
-  return text
+  return escapeHtml(text)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .split('\n\n')
@@ -93,8 +156,8 @@ function buildGalleryHTML(slug, photoList) {
 
   let html = '<h2>Photos</h2><div class="gallery">';
   photoList.forEach(name => {
-    const src = `photos/${slug}/${name}`;
-    html += `<img src="${src}" loading="lazy" data-lightbox-src="${src}">`;
+    const src = `photos/${pathSegment(slug)}/${pathSegment(name)}`;
+    html += `<img src="${escapeAttr(src)}" loading="lazy" data-lightbox-src="${escapeAttr(src)}">`;
   });
 
   html += '</div>';
@@ -191,15 +254,20 @@ async function render() {
   const past = games.filter(g => g.isPast).sort((a, b) => b.dateObj - a.dateObj);
 
   if (hash.startsWith('game/')) {
-    const slug = hash.split('/')[1];
+    const slug = decodeURIComponent(hash.split('/')[1] || '');
     const g = games.find(x => x.slug === slug);
 
+    if (!g) {
+      app.innerHTML = '<h1>Game not found</h1>';
+      return;
+    }
+
     app.innerHTML = `
-      <h1>${g.name}</h1>
-      ${g.bannerImage ? `<img class="banner" src="${g.bannerImage}">` : ''}
-      <p><strong>Date:</strong> ${g.date}</p>
-      <p><strong>Venue:</strong> ${g.venue}</p>
-      ${!g.isPast && g.tickets ? `<a class="ticket-btn" href="${g.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>` : ''}
+      <h1>${escapeHtml(g.name)}</h1>
+      ${gameImage(g, 'bannerImage', 'banner')}
+      <p><strong>Date:</strong> ${escapeHtml(g.date)}</p>
+      <p><strong>Venue:</strong> ${escapeHtml(g.venue)}</p>
+      ${!g.isPast ? ticketsLink(g) : ''}
       <div class="markdown">${md(g.description)}</div>
       ${g.isPast ? `${buildGalleryHTML(g.slug, g.photoList)}` : ''}
     `;
@@ -219,31 +287,28 @@ async function render() {
 
           ${next ? `
             <div class="highlight">
-              <h2 data-route="game/${next.slug}">Next Event: ${next.name}</h2>
-              ${next.bannerImage ? `<img class="list-img" src="${next.bannerImage}" data-route="game/${next.slug}">` : ''}
-              <p>${next.date}</p><p>${next.venue || ''}</p>
-              ${next.theme || next.complexity ? `<p class="event-meta-icons">
-                ${next.theme ? `<span><img src="logos/theme.png" alt=""> ${next.theme}</span>` : ''} 
-                ${next.complexity ? `<span><img src="logos/complexity.png" alt=""> ${next.complexity}</span>` : ''}
-              </p>` : ''}
-              <p>${next.tagline || ''}</p>
-              <a href="#game/${next.slug}" data-route="game/${next.slug}" class="ticket-btn">Details</a>
-              <a class="ticket-btn" href="${next.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>
+              <h2 ${dataRouteAttr(next)}>Next Event: ${escapeHtml(next.name)}</h2>
+              ${gameImage(next, 'bannerImage', 'list-img', dataRouteAttr(next))}
+              <p>${escapeHtml(next.date)}</p><p>${escapeHtml(next.venue || '')}</p>
+              ${eventMetaHTML(next)}
+              <p>${escapeHtml(next.tagline || '')}</p>
+              ${detailsLink(next)}
+              ${ticketsLink(next)}
             </div>` : ''}`;
 
     innerHTML += upcoming.slice(1).map(g => `
       <div class="card">
         <div class="compact-event">
           <div class="compact-event-actions">
-            <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
-            <a class="ticket-btn" href="${g.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>
+            ${detailsLink(g)}
+            ${ticketsLink(g)}
           </div>
-          <div class="compact-event-details" data-route="game/${g.slug}">
-            <strong>${g.name}</strong> (${g.date}, ${g.location})
-            <p>${g.tagline || ''}</p>
+          <div class="compact-event-details" ${dataRouteAttr(g)}>
+            <strong>${escapeHtml(g.name)}</strong> (${escapeHtml(g.date)}, ${escapeHtml(g.location || '')})
+            <p>${escapeHtml(g.tagline || '')}</p>
           </div>
-          <div data-route="game/${g.slug}">
-            ${g.listImage ? `<img class="compact-event-image" src="${g.listImage}">` : ''}
+          <div ${dataRouteAttr(g)}>
+            ${gameImage(g, 'listImage', 'compact-event-image')}
           </div>
         </div>
       </div>
@@ -297,13 +362,13 @@ async function render() {
 
     grid.innerHTML = upcoming.map(g => `
         <div class="card">
-          ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
-          <h2 data-route="game/${g.slug}">${g.name}</h2>
-          <p>${g.date}</p><p>${g.venue || ''}</p>
-          ${g.theme || g.complexity ? `<p class="event-meta-icons">${g.theme ? `<span><img src="logos/theme.png" alt=""> ${g.theme}</span>` : ''} ${g.complexity ? `<span><img src="logos/complexity.png" alt=""> ${g.complexity}</span>` : ''}</p>` : ''}
-          <p>${g.tagline || ''}</p>
-          <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">Details</a>
-          <a class="ticket-btn" href="${g.tickets}" target="_blank" rel="noopener noreferrer">Tickets</a>
+          ${gameImage(g, 'listImage', 'list-img', dataRouteAttr(g))}
+          <h2 ${dataRouteAttr(g)}>${escapeHtml(g.name)}</h2>
+          <p>${escapeHtml(g.date)}</p><p>${escapeHtml(g.venue || '')}</p>
+          ${eventMetaHTML(g)}
+          <p>${escapeHtml(g.tagline || '')}</p>
+          ${detailsLink(g)}
+          ${ticketsLink(g)}
         </div>
       `).join('');
   }
@@ -314,11 +379,11 @@ async function render() {
 
     grid.innerHTML = past.map(g => `
         <div class="card">
-          ${g.listImage ? `<img class="list-img" src="${g.listImage}" data-route="game/${g.slug}">` : ''}
-          <h2 data-route="game/${g.slug}">${g.name}</h2>
-          <p>${g.date}</p>
-          <p>${g.tagline || ''}</p>
-          <a href="#game/${g.slug}" data-route="game/${g.slug}" class="ticket-btn">View</a>
+          ${gameImage(g, 'listImage', 'list-img', dataRouteAttr(g))}
+          <h2 ${dataRouteAttr(g)}>${escapeHtml(g.name)}</h2>
+          <p>${escapeHtml(g.date)}</p>
+          <p>${escapeHtml(g.tagline || '')}</p>
+          ${detailsLink(g, 'View')}
         </div>
       `).join('');
   }
