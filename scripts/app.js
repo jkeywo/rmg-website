@@ -44,18 +44,18 @@ function detailsLink(game, label = 'Details') {
 function gameImage(game, key, className, attrs = '') {
   if (!game[key]) return '';
   const extraAttrs = attrs ? ` ${attrs}` : '';
-  return `<img class="${escapeAttr(className)}" src="${escapeAttr(game[key])}" alt="${escapeAttr(game.name || '')}"${extraAttrs}>`;
+  return `<img class="${escapeAttr(className)}" src="${escapeAttr(game[key])}" alt="${escapeAttr(game.name || '')}" loading="lazy" decoding="async"${extraAttrs}>`;
 }
 
 function eventMetaHTML(game) {
   const meta = [];
 
   if (game.theme) {
-    meta.push(`<span><img src="logos/theme.png" alt=""> ${escapeHtml(game.theme)}</span>`);
+    meta.push(`<span><img src="logos/theme.png" alt="" width="24" height="24" loading="lazy" decoding="async"> ${escapeHtml(game.theme)}</span>`);
   }
 
   if (game.complexity) {
-    meta.push(`<span><img src="logos/complexity.png" alt=""> ${escapeHtml(game.complexity)}</span>`);
+    meta.push(`<span><img src="logos/complexity.png" alt="" width="24" height="24" loading="lazy" decoding="async"> ${escapeHtml(game.complexity)}</span>`);
   }
 
   return meta.length ? `<p class="event-meta-icons">${meta.join(' ')}</p>` : '';
@@ -157,7 +157,7 @@ function buildGalleryHTML(slug, photoList) {
   let html = '<h2>Photos</h2><div class="gallery">';
   photoList.forEach(name => {
     const src = `photos/${pathSegment(slug)}/${pathSegment(name)}`;
-    html += `<img src="${escapeAttr(src)}" loading="lazy" data-lightbox-src="${escapeAttr(src)}">`;
+    html += `<img src="${escapeAttr(src)}" alt="" loading="lazy" decoding="async" width="320" height="240" data-lightbox-src="${escapeAttr(src)}">`;
   });
 
   html += '</div>';
@@ -188,9 +188,9 @@ let carouselIndex = 0;
 function carouselHTML() {
   return `
     <div class="carousel">
-      <img id="carousel-img" src="${carouselImages[0]}">
-      <button class="prev" type="button" data-carousel-step="-1">&lsaquo;</button>
-      <button class="next" type="button" data-carousel-step="1">&rsaquo;</button>
+      <img id="carousel-img" src="${carouselImages[0]}" alt="" width="1100" height="320" fetchpriority="high">
+      <button class="prev" type="button" data-carousel-step="-1" aria-label="Previous carousel image">&lsaquo;</button>
+      <button class="next" type="button" data-carousel-step="1" aria-label="Next carousel image">&rsaquo;</button>
     </div>`;
 }
 
@@ -324,7 +324,7 @@ async function render() {
             </div>
           <div class="cta-box">
             <h2>Join Our Community</h2>
-            <p><a class="community-link" href="https://discord.gg/3UD7cRbv37" target="_blank" rel="noopener noreferrer"><img src="logos/discord.png" alt="" />Discord Server</a></p>
+            <p><a class="community-link" href="https://discord.gg/3UD7cRbv37" target="_blank" rel="noopener noreferrer"><img src="logos/discord.png" alt="" width="32" height="32" loading="lazy" decoding="async" />Discord Server</a></p>
           </div>
 
           <div>
