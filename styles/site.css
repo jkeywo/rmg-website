@@ -69,8 +69,10 @@ h2 {
 }
 
 .banner {
+  display: block;
   width: 100%;
-  max-height: 380px;
+  aspect-ratio: 2.4 / 1;
+  height: auto;
   object-fit: cover;
   border-radius: 14px;
   margin-bottom: 1rem;
@@ -297,7 +299,4 @@ footer {
     order: 3;
   }
 
-  .banner {
-    max-height: 240px;
-  }
 }
