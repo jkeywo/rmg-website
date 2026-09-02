@@ -73,7 +73,7 @@ that promoted branch. It exits without deploying unless a promoted game occurs
 on that UTC date, and it skips the upload when the live content hash already
 matches.
 
-Before merging these changes, switch GitHub Pages away from its legacy
-`main`/root publishing mode so pushes cannot update the production hostname.
-The legacy root files remain in the repository only as a cutover fallback and
-are not included in generated deployment artifacts.
+GitHub Pages now publishes from the `Build and deploy staging` workflow
+artifact rather than the `main` branch root, so pushes to `main` no longer
+serve raw repository files. The legacy client-rendered fallback (root
+`index.html`, `scripts/app.js`, `scripts/site-content.js`) has been removed.
