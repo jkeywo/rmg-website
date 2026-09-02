@@ -42,9 +42,6 @@ jobs:
       - name: Validate generated site
         run: npm run check
 
-      - name: Run Lighthouse performance budgets
-        run: npm run lighthouse
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 

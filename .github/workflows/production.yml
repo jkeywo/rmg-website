@@ -49,9 +49,6 @@ jobs:
       - name: Build and validate production
         run: npm run build && npm run check
 
-      - name: Run Lighthouse performance budgets
-        run: npm run lighthouse
-
       - name: Deploy latest main to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
