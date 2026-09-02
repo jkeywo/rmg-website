@@ -60,16 +60,6 @@
       document.getElementById('lightbox').close();
       return;
     }
-
-    const mailingButton = event.target.closest('[data-mailing-src]');
-    if (mailingButton) {
-      const frame = document.createElement('iframe');
-      frame.className = 'mailing-list-frame';
-      frame.title = 'Mailing list signup';
-      frame.loading = 'lazy';
-      frame.src = mailingButton.dataset.mailingSrc;
-      mailingButton.parentElement.replaceWith(frame);
-    }
   });
 
   document.getElementById('lightbox')?.addEventListener('click', event => {

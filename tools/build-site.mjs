@@ -284,7 +284,7 @@ async function main() {
     <aside class="sidebar">
       <div class="home-intro">${paragraphs(siteContent.homeIntro)}</div>
       <div class="cta-box"><h2>Join Our Community</h2><p><a class="community-link" href="${escapeHtml(siteContent.discordUrl)}" target="_blank" rel="noopener noreferrer">${picture(discord, { alt: '', sizes: '32px', className: 'community-icon' })} Discord Server</a></p></div>
-      <div class="mailing-list-placeholder"><h2>Mailing List</h2><p>Hear when new games are announced.</p><p><button class="ticket-btn" type="button" data-mailing-src="${escapeHtml(siteContent.mailingListUrl)}">Load signup form</button></p></div>
+      <div class="mailing-list-placeholder"><h2>Mailing List</h2><p>Hear when new games are announced.</p><iframe class="mailing-list-frame" title="Mailing list signup" loading="lazy" src="${escapeHtml(siteContent.mailingListUrl)}"></iframe></div>
     </aside>
   </div>`;
 

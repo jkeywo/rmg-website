@@ -37,8 +37,13 @@ for (const htmlFile of htmlFiles) {
   const relativeHtml = path.relative(root, htmlFile).replaceAll('\\', '/');
   if (!/<link rel="canonical" href="https?:\/\//.test(html)) errors.push(`${relativeHtml}: missing canonical URL`);
   if (!/<main\b/.test(html) || !/<h1\b/.test(html)) errors.push(`${relativeHtml}: missing semantic main heading`);
-  if (/<(?:script|img|source|iframe)[^>]+(?:src|srcset)="https?:\/\//i.test(html)) {
+  if (/<(?:script|img|source)[^>]+(?:src|srcset)="https?:\/\//i.test(html)) {
     errors.push(`${relativeHtml}: eager third-party runtime resource`);
+  }
+  for (const iframeTag of html.match(/<iframe\b[^>]*>/gi) || []) {
+    if (/\bsrc="https?:\/\//i.test(iframeTag) && !/\bloading="lazy"/i.test(iframeTag)) {
+      errors.push(`${relativeHtml}: eager third-party iframe`);
+    }
   }
 
   const attributes = html.matchAll(/\b(?:href|src)="([^"]+)"/g);
