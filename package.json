@@ -1,0 +1,23 @@
+{
+  "name": "reading-megagames-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node tools/build-site.mjs --source games.neon --output dist --base-url https://readingmegagames.co.uk/ --environment production",
+    "build:staging": "node tools/build-site.mjs --source games.neon --output dist --base-url https://test.readingmegagames.co.uk/ --environment staging",
+    "test": "node --test",
+    "check": "node tools/check-site.mjs dist",
+    "lighthouse": "lhci autorun"
+  },
+  "devDependencies": {
+    "@lhci/cli": "0.15.1",
+    "sharp": "0.34.3"
+  },
+  "optionalDependencies": {
+    "@img/sharp-win32-x64": "0.34.3"
+  }
+}

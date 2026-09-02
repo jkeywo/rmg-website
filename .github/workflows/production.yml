@@ -1,0 +1,114 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 16 * * *'
+
+permissions:
+  contents: write
+  deployments: write
+
+concurrency:
+  group: cloudflare-production
+  cancel-in-progress: false
+
+jobs:
+  manual-release:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://readingmegagames.co.uk/
+    steps:
+      - name: Check out latest main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Confirm production can fast-forward
+        shell: bash
+        run: |
+          if git show-ref --verify --quiet refs/remotes/origin/production; then
+            git merge-base --is-ancestor origin/production HEAD
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install build dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Test generator
+        run: npm test
+
+      - name: Build and validate production
+        run: npm run build && npm run check
+
+      - name: Run Lighthouse performance budgets
+        run: npm run lighthouse
+
+      - name: Deploy latest main to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=reading-megagames --branch=production
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Advance production branch
+        shell: bash
+        run: git push origin HEAD:production
+
+  event-day-update:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://readingmegagames.co.uk/
+    steps:
+      - name: Check out promoted production branch
+        uses: actions/checkout@v6
+        with:
+          ref: production
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install build dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Check for a game today
+        id: event-day
+        shell: bash
+        run: echo "matches=$(node tools/check-event-day.mjs --source games.neon)" >> "$GITHUB_OUTPUT"
+
+      - name: Test generator
+        if: steps.event-day.outputs.matches == 'true'
+        run: npm test
+
+      - name: Build and validate event-day update
+        if: steps.event-day.outputs.matches == 'true'
+        run: npm run build && npm run check
+
+      - name: Compare with live production
+        if: steps.event-day.outputs.matches == 'true'
+        id: compare
+        shell: bash
+        run: echo "changed=$(node tools/needs-deploy.mjs dist/build-manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy event-day update
+        if: steps.event-day.outputs.matches == 'true' && steps.compare.outputs.changed == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=reading-megagames --branch=production
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

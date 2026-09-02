@@ -1,0 +1,31 @@
+{
+  "homeIntro": [
+    "Megagames are an exciting hybrid of board gaming, roleplay, LARP, and Model UN. With player counts ranging from 25-100, usually played in loose teams with both co-operative and competitive elements.",
+    "Diplomacy or treachery, grand strategy or opportunism. What story will you tell?"
+  ],
+  "about": {
+    "heading": "About Us",
+    "paragraphs": [
+      "Reading Megagames are a small group of local hobbyists who enjoy designing, running and playing megagames. We have been active since 2018, running a mix of home-brewed and imported games.",
+      "We periodically run megagames in the Reading area - large-scale games combining elements of board gaming, roleplay, and negotiation. Expect us to run around four games a year - if there is not one in the calendar right now, ask to be added to our mailing list and we will let you know when the next one is organised."
+    ],
+    "ageNotice": "Due to the nature of the games we currently only run games for players aged 18 and over.",
+    "assemblyUrl": "https://www.megagameassembly.com/",
+    "assemblyLabel": "megagameassembly.com"
+  },
+  "conduct": {
+    "heading": "Code of Conduct",
+    "intro": "Reading Megagames believes in promoting diversity and inclusion - it enables us to create a safe, fun and welcoming environment in our games, it is the best and healthiest way to help the megagame community grow, and it is just the right thing to do.",
+    "leadIn": "To that end:",
+    "rules": [
+      "It will always be our highest priority to ensure that the megagames we run are safe environments for the players and the facilitator team.",
+      "All forms of discrimination, including sexism, racism, homophobia and transphobia, are unacceptable at games run by Reading Megagames, and may result in expulsion from the game without further discussion.",
+      "Any harassment or abuse of players or facilitators is likewise unacceptable and may also result in expulsion from the game without further discussion.",
+      "Players at one of our games experiencing discriminatory or abusive behaviour are encouraged to report it immediately to the facilitator team for the game, who will treat it with the utmost seriousness."
+    ],
+    "note": "Note: we are aware that megagames include elements of roleplaying, and that good-faith attempts to roleplay aggressive or demanding characters may nevertheless be upsetting to others. Where appropriate, we will discuss these situations with players, and provided they are willing to change their behaviour accordingly, no further action will be taken.",
+    "closing": "We understand that there is always room for improvement in the area of diversity and inclusion, and we welcome feedback on this code of conduct or any other aspect of how we manage our games and community."
+  },
+  "mailingListUrl": "https://www-readingmegagames-com.filesusr.com/html/9e54e1_9eef650b3ae8b6075994be8d68a72835.html",
+  "discordUrl": "https://discord.gg/3UD7cRbv37"
+}
