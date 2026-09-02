@@ -7,7 +7,7 @@
         "http://localhost/upcoming/",
         "http://localhost/games/2026-02-generalissimo/"
       ],
-      "numberOfRuns": 1,
+      "numberOfRuns": 3,
       "settings": {
         "chromeFlags": "--headless --no-sandbox --disable-dev-shm-usage --user-data-dir=.cache/lighthouse-chrome"
       }
