@@ -90,6 +90,11 @@ h2 a {
   margin-bottom: 1rem;
 }
 
+/* Keep the title in view when the Watch the Skies artwork is cropped. */
+img[alt="Watch the Skies"] {
+  object-position: left top;
+}
+
 .carousel {
   position: relative;
   margin-bottom: 1.5rem;
