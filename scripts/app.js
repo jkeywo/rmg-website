@@ -24,14 +24,9 @@ function loadContent() {
 async function render(moveFocus = false) {
   const isCurrent = beginRender();
   const route = routeFromHash(location.hash);
-  galleryObserver.disconnect();
   if (dialog.open) dialog.close();
-  document.title = 'Reading Megagames';
-  document.querySelectorAll('nav a').forEach(link => {
-    if (link.hash === `#${route.page}`) link.setAttribute('aria-current', 'page');
-    else link.removeAttribute('aria-current');
-  });
-  app.innerHTML = '<h1>Reading Megagames</h1><p role="status">Loading…</p>';
+  // Keep the current page (and its height) until the replacement is ready.
+  // The HTML shell already supplies the loading state for the initial visit.
   app.setAttribute('aria-busy', 'true');
   try {
     let html;
@@ -62,8 +57,13 @@ async function render(moveFocus = false) {
       }
     }
     if (!isCurrent()) return;
+    galleryObserver.disconnect();
     app.innerHTML = html;
     document.title = title ? `${title} | Reading Megagames` : 'Reading Megagames';
+    document.querySelectorAll('nav a').forEach(link => {
+      if (link.hash === `#${route.page}`) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
     app.querySelectorAll('.gallery').forEach(gallery => { sizeGallery(gallery); galleryObserver.observe(gallery); });
     if (moveFocus) { window.scrollTo(0, 0); app.focus({ preventScroll: true }); }
     if (route.conduct) {
@@ -74,6 +74,7 @@ async function render(moveFocus = false) {
   } catch (error) {
     if (!isCurrent()) return;
     console.error(error);
+    galleryObserver.disconnect();
     document.title = 'Content unavailable | Reading Megagames';
     app.innerHTML = '<h1>Content could not be loaded</h1><p>Please try again, or <a href="mailto:info@readingmegagames.com">contact Reading Megagames</a>.</p><button type="button" data-retry>Try again</button> <a href="#about">About us</a>';
   } finally {
