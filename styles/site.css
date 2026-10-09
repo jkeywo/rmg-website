@@ -95,6 +95,12 @@ img[alt="Watch the Skies"] {
   object-position: left top;
 }
 
+/* Preserve the lettering at the edges of the New Eden artwork. */
+img[alt="Den of Wolves: New Eden"] {
+  object-fit: contain;
+  background: #ffffff;
+}
+
 .carousel {
   position: relative;
   margin-bottom: 1.5rem;
