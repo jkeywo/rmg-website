@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   escapeHtml,
-  hasGameOnUtcDate,
   isPastAt,
   markdownToHtml,
   parseGameDate,
@@ -36,12 +35,6 @@ test('moves an event to past at 16:00 UTC on its date', () => {
   assert.equal(isPastAt(gameDate, new Date('2026-10-11T00:00:00Z')), true);
 });
 
-test('detects whether a game occurs on a UTC date', () => {
-  const games = [{ dateObj: parseGameDate('10 October 2026') }];
-  assert.equal(hasGameOnUtcDate(games, new Date('2026-10-10T16:00:00Z')), true);
-  assert.equal(hasGameOnUtcDate(games, new Date('2026-10-11T16:00:00Z')), false);
-});
-
 test('escapes content before applying supported markup', () => {
   assert.equal(escapeHtml('<script>'), '&lt;script&gt;');
   const html = markdownToHtml('**Bold** and *italic* <script>');
@@ -53,6 +46,8 @@ test('escapes content before applying supported markup', () => {
 test('rejects unsafe paths and non-HTTPS external URLs', () => {
   assert.throws(() => safeRelativePath('../secret', 'asset'), /unsafe/);
   assert.throws(() => safeRelativePath('/absolute.png', 'asset'), /unsafe/);
+  assert.throws(() => safeRelativePath('javascript:alert(1)', 'asset'), /unsafe/);
+  assert.throws(() => safeRelativePath('%2e%2e/secret', 'asset'), /unsafe/);
   assert.throws(() => safeExternalUrl('javascript:alert(1)', 'link'), /HTTPS/);
   assert.equal(safeExternalUrl('https://example.com/path', 'link'), 'https://example.com/path');
 });

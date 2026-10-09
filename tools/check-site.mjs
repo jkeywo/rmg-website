@@ -1,119 +1,36 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import zlib from 'node:zlib';
+import { fileURLToPath } from 'node:url';
+import { readGames } from './site-lib.mjs';
+import { legacyRoutes, PUBLIC_FILES } from './package-site.mjs';
 
-const root = path.resolve(process.argv[2] || 'dist');
-const files = [];
-
-async function collect(directory) {
-  for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
-    const absolute = path.join(directory, entry.name);
-    if (entry.isDirectory()) await collect(absolute);
-    else files.push(absolute);
+export async function checkSite(root = 'dist') {
+  root = path.resolve(root);
+  const games = readGames('games.neon', root);
+  for (const file of PUBLIC_FILES) await fs.access(path.join(root, file));
+  const index = await fs.readFile(path.join(root, 'index.html'), 'utf8');
+  if (!index.includes('type="module" src="scripts/app.js"') || !index.includes('id="app"')) throw new Error('Missing browser application shell');
+  if (games.some(game => index.includes(`id="${game.slug}"`) || index.includes(game.description))) throw new Error('Game content must not be rendered into the shell');
+  const allowedRoots = new Set([...PUBLIC_FILES.map(file => file.split('/')[0]), 'home', 'upcoming', 'past', 'about', 'game', 'games', '404.html', 'robots.txt', 'sitemap.xml', '_headers', '_redirects', '.nojekyll', 'CNAME']);
+  for (const file of await fs.readdir(root)) if (!allowedRoots.has(file)) throw new Error(`Unexpected public file: ${file}`);
+  for (const [route, hash] of legacyRoutes(games)) {
+    const html = await fs.readFile(path.join(root, route, 'index.html'), 'utf8');
+    if (!html.includes(`data-legacy-route="${hash}"`)) throw new Error(`Missing legacy redirect: ${route}`);
   }
-}
-
-function localPath(value) {
-  if (!value || /^(?:https?:|mailto:|data:|#)/i.test(value)) return null;
-  const clean = decodeURIComponent(value.split(/[?#]/)[0]).replace(/^\/+/, '');
-  return clean;
-}
-
-function candidates(value) {
-  const relative = localPath(value);
-  if (relative === null) return [];
-  if (!relative) return ['index.html'];
-  if (path.extname(relative)) return [relative];
-  return [relative, `${relative}.html`, path.join(relative, 'index.html')];
-}
-
-await collect(root);
-const relativeFiles = new Set(files.map(file => path.relative(root, file).replaceAll('\\', '/')));
-const errors = [];
-const htmlFiles = files.filter(file => file.endsWith('.html'));
-
-for (const htmlFile of htmlFiles) {
-  const html = await fs.readFile(htmlFile, 'utf8');
-  const relativeHtml = path.relative(root, htmlFile).replaceAll('\\', '/');
-  if (!/<link rel="canonical" href="https?:\/\//.test(html)) errors.push(`${relativeHtml}: missing canonical URL`);
-  if (!/<main\b/.test(html) || !/<h1\b/.test(html)) errors.push(`${relativeHtml}: missing semantic main heading`);
-  if (/<(?:script|img|source)[^>]+(?:src|srcset)="https?:\/\//i.test(html)) {
-    errors.push(`${relativeHtml}: eager third-party runtime resource`);
+  for (const match of index.matchAll(/(?:href|src)="([^"#]+)"/g)) {
+    if (/^(https:|mailto:)/.test(match[1])) continue;
+    await fs.access(path.join(root, decodeURIComponent(match[1])));
   }
-  for (const iframeTag of html.match(/<iframe\b[^>]*>/gi) || []) {
-    if (/\bsrc="https?:\/\//i.test(iframeTag) && !/\bloading="lazy"/i.test(iframeTag)) {
-      errors.push(`${relativeHtml}: eager third-party iframe`);
-    }
-  }
-
-  const attributes = html.matchAll(/\b(?:href|src)="([^"]+)"/g);
-  for (const match of attributes) {
-    const value = match[1].replaceAll('&amp;', '&');
-    const options = candidates(value);
-    if (options.length && !options.some(option => relativeFiles.has(option.replaceAll('\\', '/')))) {
-      errors.push(`${relativeHtml}: missing target ${value}`);
-    }
-  }
-
-  for (const match of html.matchAll(/\bsrcset="([^"]+)"/g)) {
-    for (const candidate of match[1].split(',')) {
-      const value = candidate.trim().split(/\s+/)[0];
-      const options = candidates(value);
-      if (options.length && !options.some(option => relativeFiles.has(option.replaceAll('\\', '/')))) {
-        errors.push(`${relativeHtml}: missing srcset target ${value}`);
-      }
-    }
-  }
+  const robots = await fs.readFile(path.join(root, 'robots.txt'), 'utf8');
+  if (robots.includes('Disallow: /') && !index.includes('name="robots" content="noindex,nofollow"')) throw new Error('Staging shell is indexable');
+  const sitemap = await fs.readFile(path.join(root, 'sitemap.xml'), 'utf8');
+  if ((sitemap.match(/<loc>/g) || []).length !== 1 || sitemap.includes('#')) throw new Error('Sitemap must contain only the root document');
+  const headers = await fs.readFile(path.join(root, '_headers'), 'utf8');
+  if (!headers.includes('must-revalidate') || headers.includes('immutable')) throw new Error('Unversioned files must revalidate');
+  const photos = games.reduce((total, game) => total + game.photos.length, 0);
+  console.log(`Validated ${games.length} games and ${photos} photos in the browser-rendered package.`);
 }
 
-const manifest = JSON.parse(await fs.readFile(path.join(root, 'build-manifest.json'), 'utf8'));
-if (manifest.environment === 'staging') {
-  for (const htmlFile of htmlFiles) {
-    const html = await fs.readFile(htmlFile, 'utf8');
-    if (!html.includes('name="robots" content="noindex,nofollow"')) {
-      errors.push(`${path.relative(root, htmlFile)}: staging page is indexable`);
-    }
-  }
-}
-
-const scripts = files.filter(file => /assets[\\/]code[\\/]interactions\..+\.js$/.test(file));
-if (scripts.length !== 1) errors.push('Expected exactly one interaction script');
-else {
-  const compressed = zlib.gzipSync(await fs.readFile(scripts[0]));
-  if (compressed.length > 5 * 1024) errors.push(`Interaction JavaScript is ${compressed.length} compressed bytes (budget: 5120)`);
-}
-
-const homeHtml = await fs.readFile(path.join(root, 'index.html'), 'utf8');
-let initialTransfer = zlib.gzipSync(Buffer.from(homeHtml)).length;
-for (const match of homeHtml.matchAll(/<(?:link|script)[^>]+(?:href|src)="([^"]+)"[^>]*>/g)) {
-  const options = candidates(match[1]);
-  const relative = options.find(option => relativeFiles.has(option.replaceAll('\\', '/')));
-  if (relative && /\.(?:css|js)$/.test(relative)) {
-    initialTransfer += zlib.gzipSync(await fs.readFile(path.join(root, relative))).length;
-  }
-}
-for (const match of homeHtml.matchAll(/<picture>([\s\S]*?<img [^>]*loading="eager"[^>]*>)[\s\S]*?<\/picture>/g)) {
-  const sourceSet = match[1].match(/<source type="image\/avif" srcset="([^"]+)"/);
-  if (!sourceSet) continue;
-  const choices = sourceSet[1].split(',').map(candidate => {
-    const [url, width] = candidate.trim().split(/\s+/);
-    return { url, width: Number(width.replace(/w$/, '')) };
-  }).sort((a, b) => a.width - b.width);
-  const chosen = choices.find(choice => choice.width >= 400) || choices.at(-1);
-  const relative = candidates(chosen.url)[0];
-  if (relative && relativeFiles.has(relative.replaceAll('\\', '/'))) {
-    initialTransfer += (await fs.stat(path.join(root, relative))).size;
-  }
-}
-if (initialTransfer > 500 * 1024) {
-  errors.push(`Initial mobile home transfer is ${initialTransfer} bytes (budget: 512000)`);
-}
-
-if (errors.length) {
-  console.error(`Site validation failed with ${errors.length} problem(s):`);
-  errors.slice(0, 100).forEach(error => console.error(`- ${error}`));
-  process.exitCode = 1;
-} else {
-  console.log(`Validated ${htmlFiles.length} HTML pages and ${relativeFiles.size} generated files.`);
-  console.log(`Estimated initial mobile transfer: ${initialTransfer} bytes.`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  checkSite(process.argv[2]).catch(error => { console.error(error.message); process.exitCode = 1; });
 }

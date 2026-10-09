@@ -11,10 +11,15 @@ test('staging deploys pushes to main without a schedule', () => {
   assert.match(staging, /https:\/\/test\.readingmegagames\.co\.uk\//);
 });
 
-test('production event updates run at 16:00 UTC from the production branch', () => {
-  assert.match(production, /cron: '0 16 \* \* \*'/);
-  assert.match(production, /Check out promoted production branch[\s\S]*?ref: production/);
-  assert.match(production, /Check for a game today[\s\S]*?check-event-day\.mjs/);
+test('production is manual-only and packages without image processing', () => {
+  assert.doesNotMatch(production, /\bschedule:|event-day-update|needs-deploy|npm ci/);
+  assert.match(production, /npm run package && npm run check/);
+});
+
+test('staging retains unique artifacts and waits for their metadata', () => {
+  assert.match(staging, /npm run package:staging/);
+  assert.match(staging, /Wait for Pages artifact metadata/);
+  assert.match(staging, /artifact_name: github-pages-\$\{\{ github.run_id \}\}-\$\{\{ github.run_attempt \}\}/);
 });
 
 test('manual production releases explicitly use latest main', () => {

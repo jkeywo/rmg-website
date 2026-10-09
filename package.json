@@ -7,15 +7,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node tools/build-site.mjs --source games.neon --output dist --base-url https://readingmegagames.co.uk/ --environment production",
-    "build:staging": "node tools/build-site.mjs --source games.neon --output dist --base-url https://test.readingmegagames.co.uk/ --environment staging",
+    "start": "node tools/serve-site.mjs",
+    "package": "node tools/package-site.mjs --environment production",
+    "package:staging": "node tools/package-site.mjs --environment staging",
+    "build": "npm run package",
+    "build:staging": "npm run package:staging",
     "test": "node --test",
     "check": "node tools/check-site.mjs dist"
-  },
-  "devDependencies": {
-    "sharp": "0.34.3"
-  },
-  "optionalDependencies": {
-    "@img/sharp-win32-x64": "0.34.3"
   }
 }
