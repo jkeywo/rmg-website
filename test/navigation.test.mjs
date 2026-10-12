@@ -15,6 +15,7 @@ test('navigation retains the displayed page until its replacement or error is re
     set innerHTML(value) { this._html = value; writes.push(value); },
     setAttribute: (name, value) => attributes.set(name, value),
     removeAttribute: name => attributes.delete(name),
+    querySelector: () => null,
     querySelectorAll: () => [],
     focus() {}
   };
