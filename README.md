@@ -81,9 +81,11 @@ when returning to the tab. Stale or failed checks remove the banners and leave
 the ticket links usable. Complex overlapping group caps or bundle-based group
 limits are treated as unknown rather than guessing availability.
 
-GitHub Pages staging reads the production endpoint with public CORS. Staging
-needs no API key, and only gains live statuses after production has deployed
-the function and corresponding event listings. Local `npm start` can use a
+GitHub Pages staging reads `https://staging.reading-megagames.pages.dev/api/ticket-status`
+with public CORS. Its workflow deploys a Cloudflare Pages **preview** on the
+`staging` branch, configures the preview secret from the GitHub Actions secret,
+and verifies the endpoint before publishing GitHub Pages. This does not deploy
+production, and staging no longer depends on the production API. Local `npm start` can use a
 `TICKET_TAILOR_API_KEY` environment variable; without it, banners remain hidden.
 Alternate `?source=test.neon` previews do not request live ticket status.
 

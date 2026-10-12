@@ -23,7 +23,7 @@ export const securityHeaders = [
   'X-Content-Type-Options: nosniff',
   'Referrer-Policy: strict-origin-when-cross-origin',
   'Permissions-Policy: camera=(), geolocation=(), microphone=()',
-  "Content-Security-Policy: default-src 'self'; connect-src 'self' https://readingmegagames.co.uk; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-src https://www-readingmegagames-com.filesusr.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+  "Content-Security-Policy: default-src 'self'; connect-src 'self' https://staging.reading-megagames.pages.dev; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-src https://www-readingmegagames-com.filesusr.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 ];
 
 export async function packageSite({ root = process.cwd(), output = 'dist', source = 'games.neon', environment = 'production' } = {}) {

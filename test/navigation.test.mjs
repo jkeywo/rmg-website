@@ -4,6 +4,7 @@ import test from 'node:test';
 import vm from 'node:vm';
 import { createRenderGate, gamesSource, routeFromHash } from '../scripts/games.js';
 import * as views from '../scripts/views.js';
+import { ticketStatusEndpoint } from '../scripts/ticket-status.js';
 
 test('navigation retains the displayed page until its replacement or error is ready', async () => {
   const writes = [];
@@ -19,7 +20,7 @@ test('navigation retains the displayed page until its replacement or error is re
   };
   const requests = [];
   const context = vm.createContext({
-    ...views, createRenderGate, gamesSource, routeFromHash,
+    ...views, createRenderGate, gamesSource, routeFromHash, ticketStatusEndpoint,
     createGamesLoader: () => () => new Promise((resolve, reject) => requests.push({ resolve, reject })),
     createTicketStatusLoader: () => async () => ({ statuses: {} }),
     applyTicketStatuses() {},

@@ -1,19 +1,18 @@
 import { createGamesLoader, createRenderGate, gamesSource, routeFromHash } from './games.js';
 import { sizeGallery } from './gallery.js';
 import { notFound, renderAbout, renderGame, renderHome, renderListing } from './views.js';
-import { applyTicketStatuses, createTicketStatusLoader } from './ticket-status.js';
+import { applyTicketStatuses, createTicketStatusLoader, ticketStatusEndpoint } from './ticket-status.js';
 
 const app = document.getElementById('app');
 const dialog = document.getElementById('lightbox');
 const loadGames = createGamesLoader();
 const beginRender = createRenderGate();
-const ticketEndpoint = location.hostname === 'test.readingmegagames.co.uk'
-  ? 'https://readingmegagames.co.uk/api/ticket-status' : '/api/ticket-status';
+const ticketEndpoint = ticketStatusEndpoint(location.hostname);
 const loadTicketStatuses = createTicketStatusLoader(globalThis.fetch, Date.now, ticketEndpoint);
 let refreshTicketStatuses = () => {};
 let contentPromise;
 let carouselIndex = 0;
-let carouselPaused = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const galleryObserver = new ResizeObserver(entries => entries.forEach(entry => sizeGallery(entry.target)));
 
 function loadContent() {
@@ -51,7 +50,7 @@ async function render(moveFocus = false) {
       if (!isCurrent()) return;
       const upcoming = games.filter(game => !game.isPast).sort((a, b) => a.dateObj - b.dateObj);
       const past = games.filter(game => game.isPast).sort((a, b) => b.dateObj - a.dateObj);
-      if (route.page === 'home') html = renderHome(upcoming, content, carouselIndex, carouselPaused);
+      if (route.page === 'home') html = renderHome(upcoming, content, carouselIndex);
       if (route.page === 'upcoming' || route.page === 'past') {
         html = renderListing(route.page === 'upcoming' ? upcoming : past, route.page === 'upcoming');
         title = route.page === 'upcoming' ? 'Upcoming Games' : 'Past Games';
@@ -110,12 +109,6 @@ document.addEventListener('click', event => {
   if (target.closest('[data-retry]')) { render(true); return; }
   const step = target.closest('[data-carousel-step]');
   if (step) { moveCarousel(Number(step.dataset.carouselStep)); return; }
-  const pause = target.closest('[data-carousel-pause]');
-  if (pause) {
-    carouselPaused = !carouselPaused;
-    pause.textContent = carouselPaused ? 'Play slideshow' : 'Pause slideshow';
-    return;
-  }
   const photo = target.closest('[data-lightbox-src]');
   if (photo) {
     event.preventDefault();
@@ -143,7 +136,7 @@ document.addEventListener('error', event => {
   }
 }, true);
 setInterval(() => {
-  if (!carouselPaused && !document.hidden && document.getElementById('carousel-img')) moveCarousel(1);
+  if (!reducedMotion && !document.hidden && document.getElementById('carousel-img')) moveCarousel(1);
 }, 10000);
 setInterval(() => { if (!document.hidden) refreshTicketStatuses(); }, 60000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTicketStatuses(); });

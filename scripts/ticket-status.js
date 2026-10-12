@@ -1,6 +1,11 @@
 export const STATUS_MAX_AGE = 5 * 60 * 1000;
 const labels = { sold_out: 'Sold Out', nearly_sold_out: 'Nearly sold out' };
 
+export function ticketStatusEndpoint(hostname) {
+  return hostname === 'test.readingmegagames.co.uk'
+    ? 'https://staging.reading-megagames.pages.dev/api/ticket-status' : '/api/ticket-status';
+}
+
 export function ticketEventKey(value) {
   try {
     const url = new URL(value);

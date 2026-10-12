@@ -436,11 +436,5 @@ footer {
 
 }
 
-.carousel-pause {
-  display: block;
-  margin: -1rem 0 1rem auto;
-  cursor: pointer;
-}
-
 :focus-visible { outline: 3px solid #3574B9; outline-offset: 4px; }
 nav a[aria-current="page"] { text-decoration: underline; text-underline-offset: 0.3rem; }

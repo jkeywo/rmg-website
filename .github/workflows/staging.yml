@@ -39,6 +39,21 @@ jobs:
       - name: Validate site package
         run: npm run check
 
+      - name: Deploy staging API to Cloudflare preview
+        uses: cloudflare/wrangler-action@v4.1.3
+        env:
+          TICKET_TAILOR_API_KEY: ${{ secrets.TICKET_TAILOR_API_KEY }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          preCommands: |
+            node tools/check-ticket-api.mjs
+            printf '%s' "$TICKET_TAILOR_API_KEY" | npx wrangler pages secret put TICKET_TAILOR_API_KEY --project-name=reading-megagames --env preview
+          command: pages deploy dist --project-name=reading-megagames --branch=staging
+
+      - name: Verify staging ticket endpoint
+        run: node tools/check-ticket-endpoint.mjs
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6.0.0
 

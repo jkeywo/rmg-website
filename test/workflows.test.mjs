@@ -26,3 +26,10 @@ test('manual production releases explicitly use latest main', () => {
   assert.match(production, /Check out latest main[\s\S]*?ref: main/);
   assert.match(production, /git push origin HEAD:production/);
 });
+
+test('staging deploys and verifies an independent preview API without publishing production', () => {
+  assert.match(staging, /pages deploy dist --project-name=reading-megagames --branch=staging/);
+  assert.match(staging, /pages secret put TICKET_TAILOR_API_KEY --project-name=reading-megagames --env preview/);
+  assert.ok(staging.indexOf('node tools/check-ticket-endpoint.mjs') < staging.indexOf('uses: actions/deploy-pages'));
+  assert.doesNotMatch(staging, /--branch=production|--env production|HEAD:production/);
+});

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import { eventTicketStatus, fetchTicketStatuses, handleTicketStatus } from '../server/ticket-status.js';
-import { applyTicketStatuses, createTicketStatusLoader, STATUS_MAX_AGE, ticketEventKey } from '../scripts/ticket-status.js';
+import { applyTicketStatuses, createTicketStatusLoader, STATUS_MAX_AGE, ticketEventKey, ticketStatusEndpoint } from '../scripts/ticket-status.js';
 import { renderHome, renderListing } from '../scripts/views.js';
 import { validateGames, parseNeon } from '../scripts/site-lib.js';
 
@@ -137,12 +137,20 @@ test('home shows up to three games, conditionally links to the full list, and ke
   const example = validateGames(parseNeon(source))[0];
   const games = Array.from({ length: 5 }, (_, index) => ({ ...example, slug: `game-${index}`, name: `Game ${index}`, isPast: false }));
   for (const length of [0, 1, 2, 3, 4, 5]) {
-    const home = renderHome(games.slice(0, length), content, 0, false);
+    const home = renderHome(games.slice(0, length), content, 0);
     assert.equal((home.match(/<article/g) || []).length, Math.min(3, length));
-    assert.equal(home.includes('View all upcoming games'), length > 3);
+    assert.equal(home.includes('View more upcoming games'), length > 3);
+    assert.doesNotMatch(home, /data-carousel-pause|Play slideshow|Pause slideshow/);
     assert.equal(home.includes('#game/game-3'), false);
     assert.equal((home.match(/data-ticket-status=/g) || []).length, Math.min(3, length));
   }
   assert.equal((renderListing(games, true).match(/data-ticket-status=/g) || []).length, 5);
   assert.doesNotMatch(renderListing(games.map(game => ({ ...game, isPast: true })), false), /data-ticket-status/);
+});
+
+test('GitHub staging reads the preview API while production and local previews use their own origin', () => {
+  assert.equal(ticketStatusEndpoint('test.readingmegagames.co.uk'), 'https://staging.reading-megagames.pages.dev/api/ticket-status');
+  for (const host of ['readingmegagames.co.uk', 'www.readingmegagames.co.uk', 'staging.reading-megagames.pages.dev', '127.0.0.1']) {
+    assert.equal(ticketStatusEndpoint(host), '/api/ticket-status');
+  }
 });

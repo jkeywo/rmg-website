@@ -52,7 +52,7 @@ test('empty source renders empty lists and retains community content', async () 
   assert.deepEqual(await load(), []);
   assert.match(renderListing([], true), /no upcoming games/i);
   assert.match(renderListing([], false), /No past games/);
-  const home = renderHome([], content, 0, false);
+  const home = renderHome([], content, 0);
   assert.match(home, /Discord Server/);
   assert.match(home, /<iframe[^>]*loading="lazy"[^>]*src="https:/);
 });
