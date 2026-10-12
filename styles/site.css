@@ -185,10 +185,18 @@ img[alt="Den of Wolves: New Eden"] {
   align-items: center;
 }
 
-.compact-event-actions {
-  display: flex;
-  flex-wrap: wrap;
+.home-ticket-actions {
+  display: inline-grid;
+  grid-template-columns: repeat(2, auto);
+  width: max-content;
+  max-width: 100%;
   gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.home-ticket-actions > .ticket-btn {
+  margin-top: 0;
+  text-align: center;
 }
 
 .game-ticket-actions {
@@ -216,9 +224,8 @@ img[alt="Den of Wolves: New Eden"] {
   border: 1px solid #d7ae43;
 }
 
-.compact-event-media {
-  display: grid;
-  gap: 0.5rem;
+.home-ticket-actions > .ticket-status {
+  grid-column: 1 / -1;
 }
 
 .compact-event-details p {
@@ -441,6 +448,7 @@ footer {
   .compact-event-actions {
     order: 3;
   }
+
 
 }
 
