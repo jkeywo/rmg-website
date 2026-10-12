@@ -202,8 +202,23 @@ img[alt="Den of Wolves: New Eden"] {
 .game-ticket-actions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.game-ticket-actions > .ticket-btn,
+.game-ticket-actions > .ticket-status:not([hidden]) {
+  display: flex;
+  align-items: center;
+}
+
+.game-ticket-actions > .ticket-btn {
+  margin-top: 0;
+}
+
+.game-ticket-actions > .ticket-status {
+  padding: 0.45rem 0.75rem;
 }
 
 .ticket-status {
