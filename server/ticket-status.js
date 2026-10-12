@@ -61,7 +61,9 @@ export async function fetchTicketStatuses(apiKey, listedKeys, { fetchFile = glob
   for (let page = 0; page < 20; page++) {
     const response = await fetchFile(`https://api.tickettailor.com/v1/events?${query}`, {
       headers: { Accept: 'application/json', Authorization: `Basic ${btoa(apiKey)}` },
-      redirect: 'error', signal
+      // Workers supports manual redirects; reject their non-2xx response below
+      // without following them or forwarding the Authorization header.
+      redirect: 'manual', signal
     });
     if (!response.ok) throw new Error(`Ticket Tailor returned HTTP ${response.status}`);
     const result = await response.json();

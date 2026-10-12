@@ -64,7 +64,7 @@ test('API pagination uses fixed-origin requests and returns only listed public s
   const result = await fetchTicketStatuses('test-key', new Set(['2469346']), { now, fetchFile: async (url, options) => {
     calls.push(url);
     assert.equal(options.headers.Authorization, `Basic ${btoa('test-key')}`);
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     return Response.json(pages.shift());
   } });
   assert.equal(calls.length, 2);
@@ -74,6 +74,16 @@ test('API pagination uses fixed-origin requests and returns only listed public s
 
 const source = '-\nname: Example\nslug: example\ndate: 10 April 2027\ndescription: Test\nlistImage: images/faes-list.png\nbannerImage: images/faes-banner.png\ntickets: https://www.tickettailor.com/events/7/2469346\n';
 const context = () => ({ request: new Request('https://readingmegagames.co.uk/api/ticket-status?ignored=1'), env: { TICKET_TAILOR_API_KEY: 'test-key', ASSETS: { fetch: async () => new Response(source) } } });
+
+test('upstream redirects are rejected without forwarding API credentials', async () => {
+  let calls = 0;
+  await assert.rejects(fetchTicketStatuses('test-key', new Set(['2469346']), { now, fetchFile: async (_url, options) => {
+    calls++;
+    assert.equal(options.redirect, 'manual');
+    return new Response(null, { status: 302, headers: { Location: 'https://untrusted.example/' } });
+  } }), /HTTP 302/);
+  assert.equal(calls, 1);
+});
 
 test('default API fetch preserves the global receiver required by the Workers runtime', async t => {
   t.mock.method(globalThis, 'fetch', async function () {
