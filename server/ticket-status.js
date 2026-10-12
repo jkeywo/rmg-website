@@ -52,7 +52,7 @@ export function eventTicketStatus(event, now = Date.now()) {
   return capacity > 0 && remaining / capacity <= 0.2 ? 'nearly_sold_out' : 'available';
 }
 
-export async function fetchTicketStatuses(apiKey, listedKeys, { fetchFile = fetch, now = Date.now() } = {}) {
+export async function fetchTicketStatuses(apiKey, listedKeys, { fetchFile = globalThis.fetch.bind(globalThis), now = Date.now() } = {}) {
   const statuses = {};
   if (!listedKeys.size) return { checkedAt: now, statuses };
   const query = new URLSearchParams({ status: 'published', limit: '100', 'end_at.gte': String(Math.floor(now / 1000)) });
@@ -90,7 +90,7 @@ function json(data, status = 200) {
   } });
 }
 
-export async function handleTicketStatus({ request, env, waitUntil = () => {} }, { fetchFile = fetch, cache = globalThis.caches?.default, now = Date.now() } = {}) {
+export async function handleTicketStatus({ request, env, waitUntil = () => {} }, { fetchFile = globalThis.fetch.bind(globalThis), cache = globalThis.caches?.default, now = Date.now() } = {}) {
   if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
   if (!env.TICKET_TAILOR_API_KEY) return json({ error: 'Ticket availability unavailable' }, 503);
   const cacheKey = new Request(new URL('/api/ticket-status', request.url));

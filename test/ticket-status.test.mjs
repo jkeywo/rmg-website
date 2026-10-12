@@ -75,6 +75,16 @@ test('API pagination uses fixed-origin requests and returns only listed public s
 const source = '-\nname: Example\nslug: example\ndate: 10 April 2027\ndescription: Test\nlistImage: images/faes-list.png\nbannerImage: images/faes-banner.png\ntickets: https://www.tickettailor.com/events/7/2469346\n';
 const context = () => ({ request: new Request('https://readingmegagames.co.uk/api/ticket-status?ignored=1'), env: { TICKET_TAILOR_API_KEY: 'test-key', ASSETS: { fetch: async () => new Response(source) } } });
 
+test('default API fetch preserves the global receiver required by the Workers runtime', async t => {
+  t.mock.method(globalThis, 'fetch', async function () {
+    assert.equal(this, globalThis, 'Workers rejects an unbound fetch with Illegal invocation');
+    return Response.json({ data: [event()] });
+  });
+  const snapshot = await fetchTicketStatuses('test-key', new Set(['2469346']), { now });
+  assert.equal(snapshot.statuses['2469346'], 'nearly_sold_out');
+  assert.equal((await handleTicketStatus(context(), { now })).status, 200);
+});
+
 test('endpoint caches successful public snapshots; missing keys, upstream failures and stale cache fail safely', async () => {
   let saved;
   let requests = 0;
