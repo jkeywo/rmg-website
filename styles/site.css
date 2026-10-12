@@ -209,8 +209,9 @@ img[alt="Den of Wolves: New Eden"] {
   border: 1px solid #d7ae43;
 }
 
-.compact-event > .ticket-status {
-  grid-column: 1 / -1;
+.compact-event-media {
+  display: grid;
+  gap: 0.5rem;
 }
 
 .compact-event-details p {
