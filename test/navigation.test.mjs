@@ -21,6 +21,8 @@ test('navigation retains the displayed page until its replacement or error is re
   const context = vm.createContext({
     ...views, createRenderGate, gamesSource, routeFromHash,
     createGamesLoader: () => () => new Promise((resolve, reject) => requests.push({ resolve, reject })),
+    createTicketStatusLoader: () => async () => ({ statuses: {} }),
+    applyTicketStatuses() {},
     sizeGallery() {}, ResizeObserver: class { observe() {} disconnect() {} },
     matchMedia: () => ({ matches: false }), setInterval() {},
     console: { error() {} },

@@ -1,4 +1,5 @@
 import { escapeHtml as esc, markdownToHtml, safeExternalUrl } from './site-lib.js';
+import { ticketEventKey } from './ticket-status.js';
 
 const paragraphs = values => values.map(value => `<p>${esc(value)}</p>`).join('');
 const route = game => `#game/${game.slug}`;
@@ -7,6 +8,8 @@ const details = (game, label = 'Details') => `<a class="ticket-btn" href="${rout
 const tickets = game => !game.isPast && game.tickets ? `<a class="ticket-btn" href="${esc(game.tickets)}" target="_blank" rel="noopener noreferrer">Tickets</a>` : '';
 const image = (game, field, className, eager = false) => `<img class="${className}" src="${esc(imagePath(game[field]))}" alt="${esc(game.name)}" loading="${eager ? 'eager' : 'lazy'}" decoding="async">`;
 const meta = game => `<p class="event-meta-icons">${['theme', 'complexity'].filter(key => game[key]).map(key => `<span><img src="logos/${key}.png" alt="" width="24" height="24"> ${esc(game[key])}</span>`).join('')}</p>`;
+const ticketStatus = game => !game.isPast && ticketEventKey(game.tickets)
+  ? `<div class="ticket-status" data-ticket-status="${ticketEventKey(game.tickets)}" hidden></div>` : '';
 
 export function renderAbout(content) {
   const { about, conduct } = content;
@@ -39,6 +42,7 @@ export function renderListing(games, upcoming) {
     ${games.length ? '' : `<p>${upcoming ? 'There are no upcoming games currently announced.' : 'No past games are available.'}</p>`}
     <div class="games-grid">${games.map(game => `<article class="card">
       <a href="${route(game)}">${image(game, 'listImage', 'list-img')}</a>
+      ${upcoming ? ticketStatus(game) : ''}
       <h2><a href="${route(game)}">${esc(game.name)}</a></h2><p>${esc(game.date)}</p>
       ${upcoming ? `<p>${esc(game.venue)}</p>${meta(game)}` : ''}
       <p>${esc(game.tagline)}</p>${details(game, upcoming ? 'Details' : 'View')} ${tickets(game)}</article>`).join('')}</div>`;
@@ -54,11 +58,14 @@ export function renderHome(upcoming, content, carouselIndex, paused) {
     </div><button class="carousel-pause" type="button" data-carousel-pause>${paused ? 'Play slideshow' : 'Pause slideshow'}</button>
     ${next ? `<article class="highlight"><h2><a href="${route(next)}">Next Event: ${esc(next.name)}</a></h2>
       <a href="${route(next)}">${image(next, 'bannerImage', 'banner')}</a>
+      ${ticketStatus(next)}
       <p>${esc(next.date)}</p><p>${esc(next.venue)}</p>${meta(next)}<p>${esc(next.tagline)}</p>${details(next)} ${tickets(next)}</article>` : '<p>There are no upcoming games currently announced.</p>'}
-    <div class="compact-events">${upcoming.slice(1).map(game => `<article class="card compact-event">
+    <div class="compact-events">${upcoming.slice(1, 3).map(game => `<article class="card compact-event">
+      ${ticketStatus(game)}
       <div class="compact-event-actions">${details(game)} ${tickets(game)}</div>
       <div class="compact-event-details"><strong><a href="${route(game)}">${esc(game.name)}</a></strong> (${esc(game.date)}, ${esc(game.location)})<p>${esc(game.tagline)}</p></div>
-      <a href="${route(game)}">${image(game, 'listImage', 'compact-event-image')}</a></article>`).join('')}</div></section>
+      <a href="${route(game)}">${image(game, 'listImage', 'compact-event-image')}</a></article>`).join('')}</div>
+    ${upcoming.length > 3 ? '<p><a class="ticket-btn" href="#upcoming">View all upcoming games</a></p>' : ''}</section>
     <aside class="sidebar"><div class="home-intro">${paragraphs(content.homeIntro)}</div>
       <div class="cta-box"><h2>Join Our Community</h2><p><a class="community-link" href="${esc(safeExternalUrl(content.discordUrl, 'Discord URL'))}" target="_blank" rel="noopener noreferrer"><img src="logos/discord.png" alt="" width="32" height="32" loading="lazy"> Discord Server</a></p></div>
       <div class="mailing-list-placeholder"><h2>Mailing List</h2><p>Hear when new games are announced.</p><iframe class="mailing-list-frame" title="Mailing list signup" loading="lazy" src="${esc(safeExternalUrl(content.mailingListUrl, 'Mailing list URL'))}"></iframe></div>

@@ -52,6 +52,43 @@ Game content requires JavaScript; the shell provides an email contact when it
 is disabled. Page titles update on navigation; social previews use site-level
 metadata, and the sitemap lists only the root document.
 
+## Ticket availability
+
+The home page shows the next three games, with a link to all upcoming games
+when there are more. Home and upcoming cards show **Sold Out** when public
+inventory is exhausted and **Nearly sold out** when at most 20% remains.
+The calculation respects ticket-type, ticket-group and shared event capacities,
+including holds and baskets when applying shared caps. Closed sales and hidden
+tickets do not by themselves mean an event has sold out.
+
+`functions/api/ticket-status.js` runs on Cloudflare Pages. Set the encrypted
+**production secret** `TICKET_TAILOR_API_KEY` in the `reading-megagames` Pages
+project (Settings → Variables and Secrets), then deploy production. A GitHub
+Actions secret alone does not configure the running Pages Function. The key
+needs read access to events; never put it in public files or browser JavaScript.
+Also set the repository Actions secret `TICKET_TAILOR_API_KEY`: the production
+workflow verifies API access before deployment and logs only public game slugs
+and statuses. Run the same check locally with `node tools/check-ticket-api.mjs`
+when the environment variable is set.
+Wrangler uploads the root `functions/` directory alongside `dist/` in the
+existing production workflow. Server modules are not copied into static assets.
+
+The endpoint only returns statuses for upcoming games listed in `games.neon`;
+it does not expose attendee details, private events or the raw API response.
+Cloudflare caches successful results for five minutes. Pages load independently
+of the API, refreshing banners on navigation, every minute while visible, and
+when returning to the tab. Stale or failed checks remove the banners and leave
+the ticket links usable. Complex overlapping group caps or bundle-based group
+limits are treated as unknown rather than guessing availability.
+
+GitHub Pages staging reads the production endpoint with public CORS. Staging
+needs no API key, and only gains live statuses after production has deployed
+the function and corresponding event listings. Local `npm start` can use a
+`TICKET_TAILOR_API_KEY` environment variable; without it, banners remain hidden.
+Alternate `?source=test.neon` previews do not request live ticket status.
+
+API reference: <https://developers.tickettailor.com/docs/api/get-all-events/>.
+
 ## Validation and packaging
 
 ```text

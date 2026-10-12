@@ -4,3 +4,8 @@ dist/
 .cache/
 .lighthouseci/
 npm-debug.log*
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+.wrangler/

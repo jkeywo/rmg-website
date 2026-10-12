@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { safeRelativePath } from './site-lib.mjs';
 import { PUBLIC_FILES, securityHeaders } from './package-site.mjs';
+import { handleTicketStatus } from '../server/ticket-status.js';
 
 const contentTypes = new Map([
   ['.html', 'text/html; charset=utf-8'], ['.css', 'text/css; charset=utf-8'],
@@ -22,12 +23,24 @@ export function createSiteServer({ root = process.cwd(), source = 'games.neon' }
   root = path.resolve(root);
   safeRelativePath(source, 'Game source');
   if (!source.endsWith('.neon') || !fs.existsSync(path.join(root, source))) throw new Error(`Game source does not exist: ${source}`);
-  return http.createServer((request, response) => {
+  return http.createServer(async (request, response) => {
     const send = (status, body) => { response.writeHead(status, { ...headers, 'Content-Type': 'text/html; charset=utf-8' }); response.end(request.method === 'HEAD' ? undefined : body); };
     try {
       if (!['GET', 'HEAD'].includes(request.method)) { send(405, 'Method not allowed'); return; }
       const url = new URL(request.url, 'http://localhost');
       const pathname = decodeURIComponent(url.pathname);
+      if (pathname === '/api/ticket-status') {
+        const result = await handleTicketStatus({
+          request: new Request(url, { method: request.method }),
+          env: {
+            TICKET_TAILOR_API_KEY: process.env.TICKET_TAILOR_API_KEY,
+            ASSETS: { fetch: async () => new Response(await fs.promises.readFile(path.join(root, source), 'utf8')) }
+          }
+        });
+        response.writeHead(result.status, Object.fromEntries(result.headers));
+        response.end(await result.text());
+        return;
+      }
       const legacy = pathname.match(/^\/(home|upcoming|past|about)\/?$/) || pathname.match(/^\/(games?)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/?$/);
       if (legacy) {
         const route = legacy[2] ? `game/${legacy[2]}` : legacy[1];

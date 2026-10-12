@@ -191,6 +191,28 @@ img[alt="Den of Wolves: New Eden"] {
   gap: 0.35rem;
 }
 
+.ticket-status {
+  padding: 0.55rem 0.8rem;
+  border-radius: 6px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.ticket-status--sold_out {
+  background: #8c2332;
+  color: #fff;
+}
+
+.ticket-status--nearly_sold_out {
+  background: #fff0ba;
+  color: #634400;
+  border: 1px solid #d7ae43;
+}
+
+.compact-event > .ticket-status {
+  grid-column: 1 / -1;
+}
+
 .compact-event-details p {
   margin: 0.25rem 0 0;
 }

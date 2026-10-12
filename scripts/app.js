@@ -1,11 +1,16 @@
 import { createGamesLoader, createRenderGate, gamesSource, routeFromHash } from './games.js';
 import { sizeGallery } from './gallery.js';
 import { notFound, renderAbout, renderGame, renderHome, renderListing } from './views.js';
+import { applyTicketStatuses, createTicketStatusLoader } from './ticket-status.js';
 
 const app = document.getElementById('app');
 const dialog = document.getElementById('lightbox');
 const loadGames = createGamesLoader();
 const beginRender = createRenderGate();
+const ticketEndpoint = location.hostname === 'test.readingmegagames.co.uk'
+  ? 'https://readingmegagames.co.uk/api/ticket-status' : '/api/ticket-status';
+const loadTicketStatuses = createTicketStatusLoader(globalThis.fetch, Date.now, ticketEndpoint);
+let refreshTicketStatuses = () => {};
 let contentPromise;
 let carouselIndex = 0;
 let carouselPaused = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,6 +28,7 @@ function loadContent() {
 
 async function render(moveFocus = false) {
   const isCurrent = beginRender();
+  refreshTicketStatuses = () => {};
   const route = routeFromHash(location.hash);
   if (dialog.open) dialog.close();
   // Keep the current page (and its height) until the replacement is ready.
@@ -59,6 +65,14 @@ async function render(moveFocus = false) {
     if (!isCurrent()) return;
     galleryObserver.disconnect();
     app.innerHTML = html;
+    if (['home', 'upcoming'].includes(route.page) && gamesSource(location.search) === 'games.neon') {
+      refreshTicketStatuses = async () => {
+        // Availability loads independently, so Ticket Tailor never holds up navigation.
+        const snapshot = await loadTicketStatuses();
+        if (isCurrent()) applyTicketStatuses(app, snapshot);
+      };
+      refreshTicketStatuses();
+    }
     document.title = title ? `${title} | Reading Megagames` : 'Reading Megagames';
     document.querySelectorAll('nav a').forEach(link => {
       if (link.hash === `#${route.page}`) link.setAttribute('aria-current', 'page');
@@ -131,4 +145,6 @@ document.addEventListener('error', event => {
 setInterval(() => {
   if (!carouselPaused && !document.hidden && document.getElementById('carousel-img')) moveCarousel(1);
 }, 10000);
+setInterval(() => { if (!document.hidden) refreshTicketStatuses(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTicketStatuses(); });
 render();
