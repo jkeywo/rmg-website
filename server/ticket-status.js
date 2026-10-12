@@ -94,22 +94,27 @@ export async function handleTicketStatus({ request, env, waitUntil = () => {} },
   if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
   if (!env.TICKET_TAILOR_API_KEY) return json({ error: 'Ticket availability unavailable' }, 503);
   const cacheKey = new Request(new URL('/api/ticket-status', request.url));
+  let stage = 'cache';
   try {
     const cached = await cache?.match(cacheKey);
     if (cached) {
       const data = await cached.clone().json();
       if (Number.isFinite(data.checkedAt) && now - data.checkedAt < STATUS_MAX_AGE) return cached;
     }
+    stage = 'game-source';
     const source = await env.ASSETS.fetch(new Request(new URL('/games.neon', request.url)));
     if (!source.ok) throw new Error('Game source unavailable');
     const games = validateGames(parseNeon(await source.text()));
     const listedKeys = new Set(games.filter(game => !isPastAt(game.dateObj, new Date(now))).map(game => ticketEventKey(game.tickets)).filter(Boolean));
+    stage = 'ticket-api';
     const snapshot = await fetchTicketStatuses(env.TICKET_TAILOR_API_KEY, listedKeys, { fetchFile, now });
     const response = json(snapshot);
+    stage = 'cache-write';
     if (cache) waitUntil(cache.put(cacheKey, response.clone()).catch(() => {}));
     return response;
-  } catch {
+  } catch (error) {
+    console.error('Ticket availability failed', stage, error.name);
     // No credentials, raw upstream response, private events or customer data leave this endpoint.
-    return json({ error: 'Ticket availability unavailable' }, 503);
+    return json({ error: 'Ticket availability unavailable', stage }, 503);
   }
 }
