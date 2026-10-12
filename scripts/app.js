@@ -64,7 +64,7 @@ async function render(moveFocus = false) {
     if (!isCurrent()) return;
     galleryObserver.disconnect();
     app.innerHTML = html;
-    if (['home', 'upcoming'].includes(route.page) && gamesSource(location.search) === 'games.neon') {
+    if (app.querySelector('[data-ticket-status]') && gamesSource(location.search) === 'games.neon') {
       refreshTicketStatuses = async () => {
         // Availability loads independently, so Ticket Tailor never holds up navigation.
         const snapshot = await loadTicketStatuses();

@@ -34,7 +34,7 @@ export function renderGame(game) {
   return `<article class="game-detail"><h1>${esc(game.name)}</h1>
     ${image(game, 'bannerImage', 'banner', true)}
     <p><strong>Date:</strong> ${esc(game.date)}</p><p><strong>Venue:</strong> ${esc(game.venue)}</p>
-    ${tickets(game)}<div class="markdown">${markdownToHtml(game.description)}</div>${renderGallery(game)}</article>`;
+    ${!game.isPast && game.tickets ? `<div class="game-ticket-actions">${tickets(game)}${ticketStatus(game)}</div>` : ''}<div class="markdown">${markdownToHtml(game.description)}</div>${renderGallery(game)}</article>`;
 }
 
 export function renderListing(games, upcoming) {
