@@ -1,10 +1,23 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import { escapeHtml, readGames, safeExternalUrl } from './site-lib.mjs';
 
 export const PUBLIC_FILES = ['index.html', 'games.neon', 'content/site.json', 'scripts', 'styles', 'logos', 'images', 'photos', 'carousel', 'favicon.ico'];
 const PRODUCTION_URL = 'https://readingmegagames.co.uk/';
+
+async function versionClientAssets(destination) {
+  const scriptFiles = (await fs.readdir(path.join(destination, 'scripts'))).filter(file => file.endsWith('.js')).sort();
+  const scripts = await Promise.all(scriptFiles.map(async file => [file, await fs.readFile(path.join(destination, 'scripts', file), 'utf8')]));
+  const css = await fs.readFile(path.join(destination, 'styles/site.css'), 'utf8');
+  const version = createHash('sha256').update(JSON.stringify(scripts)).update(css).digest('hex').slice(0, 16);
+  // Version the whole module graph: changing only app.js leaves cached imports stale.
+  for (const [file, source] of scripts) {
+    await fs.writeFile(path.join(destination, 'scripts', file), source.replace(/(from\s+['"])(\.\.?\/[^'"?]+\.js)(['"])/g, `$1$2?v=${version}$3`));
+  }
+  return version;
+}
 
 export function legacyRoutes(games) {
   return new Map([
@@ -46,9 +59,13 @@ export async function packageSite({ root = process.cwd(), output = 'dist', sourc
     await fs.cp(path.join(root, file), path.join(destination, file), { recursive: true });
   }
   await fs.writeFile(path.join(destination, 'games.neon'), gameBytes);
+  const assetVersion = await versionClientAssets(destination);
   const shellPath = path.join(destination, 'index.html');
   const robots = environment === 'production' ? '' : '<meta name="robots" content="noindex,nofollow">';
-  await fs.writeFile(shellPath, (await fs.readFile(shellPath, 'utf8')).replace('<!-- environment:robots -->', robots));
+  await fs.writeFile(shellPath, (await fs.readFile(shellPath, 'utf8'))
+    .replace('<!-- environment:robots -->', robots)
+    .replace('src="scripts/app.js"', `src="scripts/app.js?v=${assetVersion}"`)
+    .replace('href="styles/site.css"', `href="styles/site.css?v=${assetVersion}"`));
   for (const [route, hash] of legacyRoutes(games)) {
     await fs.mkdir(path.join(destination, route), { recursive: true });
     await fs.writeFile(path.join(destination, route, 'index.html'), redirectShell(hash, route.split('/').length));

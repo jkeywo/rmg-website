@@ -33,9 +33,12 @@ test('packages original files, redirect-only legacy pages and environment metada
   await checkSite(output);
   assert.equal(await fs.readFile(path.join(output, 'images/example.jpg'), 'utf8'), 'original image bytes');
   assert.equal(await fs.readFile(path.join(output, 'games.neon'), 'utf8'), fixture);
-  assert.equal(await fs.readFile(path.join(output, 'scripts/app.js'), 'utf8'), await fs.readFile('scripts/app.js', 'utf8'));
+  assert.equal((await fs.readFile(path.join(output, 'scripts/app.js'), 'utf8')).replace(/\?v=[a-f0-9]{16}/g, ''), await fs.readFile('scripts/app.js', 'utf8'));
   await assert.rejects(fs.access(path.join(output, 'private.txt')));
   const shell = await fs.readFile(path.join(output, 'index.html'), 'utf8');
+  const version = shell.match(/scripts\/app\.js\?v=([a-f0-9]{16})/)[1];
+  assert.ok(shell.includes(`styles/site.css?v=${version}`));
+  assert.ok((await fs.readFile(path.join(output, 'scripts/app.js'), 'utf8')).includes(`./ticket-status.js?v=${version}`));
   assert.doesNotMatch(shell, /Text rendered only|Package Example|noindex/);
   const redirect = await fs.readFile(path.join(output, 'games/2026-10-example/index.html'), 'utf8');
   assert.match(redirect, /data-legacy-route="game\/2026-10-example"/);
@@ -48,6 +51,10 @@ test('packages original files, redirect-only legacy pages and environment metada
   assert.equal(await fs.readFile(path.join(output, 'CNAME'), 'utf8'), 'test.readingmegagames.co.uk\n');
   await packageSite({ root, environment: 'production' });
   await assert.rejects(fs.access(path.join(output, 'CNAME')));
+  assert.ok((await fs.readFile(path.join(output, 'index.html'), 'utf8')).includes(`?v=${version}`), 'identical assets retain their version');
+  await fs.appendFile(path.join(root, 'scripts/app.js'), '\n// updated application\n');
+  await packageSite({ root });
+  assert.ok(!(await fs.readFile(path.join(output, 'index.html'), 'utf8')).includes(`?v=${version}`), 'new client code invalidates cached scripts and styles');
 });
 
 test('packaging rejects unsafe outputs and missing media before replacing the previous package', async t => {

@@ -9,7 +9,7 @@ export async function checkSite(root = 'dist') {
   const games = readGames('games.neon', root);
   for (const file of PUBLIC_FILES) await fs.access(path.join(root, file));
   const index = await fs.readFile(path.join(root, 'index.html'), 'utf8');
-  if (!index.includes('type="module" src="scripts/app.js"') || !index.includes('id="app"')) throw new Error('Missing browser application shell');
+  if (!/type="module" src="scripts\/app\.js\?v=[a-f0-9]+"/.test(index) || !index.includes('id="app"')) throw new Error('Missing versioned browser application shell');
   if (games.some(game => index.includes(`id="${game.slug}"`) || index.includes(game.description))) throw new Error('Game content must not be rendered into the shell');
   const allowedRoots = new Set([...PUBLIC_FILES.map(file => file.split('/')[0]), 'home', 'upcoming', 'past', 'about', 'game', 'games', '404.html', 'robots.txt', 'sitemap.xml', '_headers', '_redirects', '.nojekyll', 'CNAME']);
   for (const file of await fs.readdir(root)) if (!allowedRoots.has(file)) throw new Error(`Unexpected public file: ${file}`);
@@ -19,7 +19,7 @@ export async function checkSite(root = 'dist') {
   }
   for (const match of index.matchAll(/(?:href|src)="([^"#]+)"/g)) {
     if (/^(https:|mailto:)/.test(match[1])) continue;
-    await fs.access(path.join(root, decodeURIComponent(match[1])));
+    await fs.access(path.join(root, decodeURIComponent(match[1].split('?')[0])));
   }
   const robots = await fs.readFile(path.join(root, 'robots.txt'), 'utf8');
   if (robots.includes('Disallow: /') && !index.includes('name="robots" content="noindex,nofollow"')) throw new Error('Staging shell is indexable');

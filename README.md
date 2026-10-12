@@ -103,7 +103,9 @@ npm run check            Validate the current dist/ package
 `npm run build` and `npm run build:staging` remain aliases for packaging.
 The old `tools/build-site.mjs` entrypoint also forwards to packaging.
 
-Packaging copies original public assets and Neon byte-for-byte, writes
+Packaging copies images and Neon byte-for-byte, adds a content version to
+JavaScript imports and the shell's script/style URLs to avoid stale browser
+and CDN caches, writes
 environment-specific shell metadata, robots directives and headers, and creates
 legacy redirect shells. It does not render game content, classify dates, resize
 images or bundle JavaScript. Node's built-in tools are sufficient.
