@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
 import { eventTicketStatus, fetchTicketStatuses, handleTicketStatus } from '../server/ticket-status.js';
-import { applyTicketStatuses, createTicketStatusLoader, STATUS_MAX_AGE, ticketEventKey, ticketStatusEndpoint } from '../scripts/ticket-status.js';
+import { applyTicketStatuses, createTicketStatusLoader, orderHomeGames, STATUS_MAX_AGE, ticketEventKey, ticketStatusEndpoint } from '../scripts/ticket-status.js';
 import { renderHome, renderListing } from '../scripts/views.js';
 import { validateGames, parseNeon } from '../scripts/site-lib.js';
 
@@ -152,20 +152,37 @@ test('banners use plain text and hide unknown or stale statuses', () => {
   assert.equal(element.hidden, true);
 });
 
-test('home shows up to three games, conditionally links to the full list, and keeps banners off past games', () => {
+test('home shows up to two games, conditionally links to the full list, and keeps banners off past games', () => {
   const content = JSON.parse(fs.readFileSync('content/site.json', 'utf8'));
   const example = validateGames(parseNeon(source))[0];
   const games = Array.from({ length: 5 }, (_, index) => ({ ...example, slug: `game-${index}`, name: `Game ${index}`, isPast: false }));
   for (const length of [0, 1, 2, 3, 4, 5]) {
     const home = renderHome(games.slice(0, length), content, 0);
-    assert.equal((home.match(/<article/g) || []).length, Math.min(3, length));
-    assert.equal(home.includes('View more upcoming games'), length > 3);
+    assert.equal((home.match(/<article/g) || []).length, Math.min(2, length));
+    assert.equal(home.includes('View more upcoming games'), length > 2);
     assert.doesNotMatch(home, /data-carousel-pause|Play slideshow|Pause slideshow/);
-    assert.equal(home.includes('#game/game-3'), false);
-    assert.equal((home.match(/data-ticket-status=/g) || []).length, Math.min(3, length));
+    assert.equal(home.includes('#game/game-2'), false);
+    assert.equal((home.match(/data-ticket-status=/g) || []).length, Math.min(2, length));
   }
   assert.equal((renderListing(games, true).match(/data-ticket-status=/g) || []).length, 5);
   assert.doesNotMatch(renderListing(games.map(game => ({ ...game, isPast: true })), false), /data-ticket-status/);
+});
+
+test('home selects the next two games after moving sold-out events last and ignores stale status', () => {
+  const content = JSON.parse(fs.readFileSync('content/site.json', 'utf8'));
+  const example = validateGames(parseNeon(source))[0];
+  const games = Array.from({ length: 4 }, (_, index) => ({ ...example, slug: `game-${index}`, dateObj: new Date(now + index * 86400000), tickets: `https://www.tickettailor.com/events/7/${index + 1}`, isPast: false }));
+  const snapshot = { checkedAt: now, statuses: { 1: 'sold_out', 2: 'nearly_sold_out', 3: 'available', 4: 'sold_out' } };
+  const ordered = orderHomeGames([...games].reverse(), snapshot, now);
+  assert.deepEqual(ordered.map(game => game.slug), ['game-1', 'game-2', 'game-0', 'game-3']);
+  const home = renderHome(ordered, content, 0);
+  assert.ok(home.includes('#game/game-1') && home.includes('#game/game-2'));
+  assert.ok(!home.includes('#game/game-0') && !home.includes('#game/game-3'));
+  assert.deepEqual(games.map(game => game.slug), ['game-0', 'game-1', 'game-2', 'game-3']);
+  for (const unavailable of [undefined, { statuses: {} }, { ...snapshot, checkedAt: now - STATUS_MAX_AGE }]) {
+    assert.deepEqual(orderHomeGames([...games].reverse(), unavailable, now), games);
+  }
+  assert.deepEqual(orderHomeGames(games, { checkedAt: now, statuses: { 1: 'sold_out', 2: 'sold_out', 3: 'sold_out', 4: 'sold_out' } }, now), games);
 });
 
 test('GitHub staging reads the preview API while production and local previews use their own origin', () => {

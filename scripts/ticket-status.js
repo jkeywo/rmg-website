@@ -38,8 +38,16 @@ export function createTicketStatusLoader(fetchFile = globalThis.fetch, now = Dat
   };
 }
 
+const freshSnapshot = (snapshot, now) => Number.isFinite(snapshot?.checkedAt) && now - snapshot.checkedAt < STATUS_MAX_AGE && snapshot.checkedAt <= now + 60000;
+
+export function orderHomeGames(games, snapshot, now = Date.now()) {
+  const fresh = freshSnapshot(snapshot, now);
+  const soldOut = game => fresh && snapshot.statuses?.[ticketEventKey(game.tickets)] === 'sold_out';
+  return [...games].sort((a, b) => Number(soldOut(a)) - Number(soldOut(b)) || a.dateObj - b.dateObj);
+}
+
 export function applyTicketStatuses(root, snapshot, now = Date.now()) {
-  const fresh = Number.isFinite(snapshot.checkedAt) && now - snapshot.checkedAt < STATUS_MAX_AGE && snapshot.checkedAt <= now + 60000;
+  const fresh = freshSnapshot(snapshot, now);
   root.querySelectorAll('[data-ticket-status]').forEach(element => {
     const status = fresh ? snapshot.statuses?.[element.dataset.ticketStatus] : null;
     const label = Object.hasOwn(labels, status) ? labels[status] : '';

@@ -54,8 +54,10 @@ metadata, and the sitemap lists only the root document.
 
 ## Ticket availability
 
-The home page shows the next three games, with a link to all upcoming games
-when there are more. Home and upcoming cards show **Sold Out** when public
+The home page shows two games, ordered by date with sold-out events last,
+with a link to all upcoming games when there are more than two. Ordering updates
+when live ticket status arrives; unavailable or stale status falls back to date
+order. Home and upcoming cards and game detail pages show **Sold Out** when public
 inventory is exhausted and **Nearly sold out** when at most 20% remains.
 The calculation respects ticket-type, ticket-group and shared event capacities,
 including holds and baskets when applying shared caps. Closed sales and hidden

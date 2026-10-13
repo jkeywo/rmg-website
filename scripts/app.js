@@ -1,7 +1,7 @@
 import { createGamesLoader, createRenderGate, gamesSource, routeFromHash } from './games.js';
 import { sizeGallery } from './gallery.js';
-import { notFound, renderAbout, renderGame, renderHome, renderListing } from './views.js';
-import { applyTicketStatuses, createTicketStatusLoader, ticketStatusEndpoint } from './ticket-status.js';
+import { notFound, renderAbout, renderGame, renderHome, renderHomeEvents, renderListing } from './views.js';
+import { applyTicketStatuses, createTicketStatusLoader, orderHomeGames, ticketStatusEndpoint } from './ticket-status.js';
 
 const app = document.getElementById('app');
 const dialog = document.getElementById('lightbox');
@@ -36,6 +36,7 @@ async function render(moveFocus = false) {
   try {
     let html;
     let title;
+    let updateHomeEvents;
     if (route.page === 'not-found') {
       html = notFound;
       title = 'Page not found';
@@ -50,7 +51,18 @@ async function render(moveFocus = false) {
       if (!isCurrent()) return;
       const upcoming = games.filter(game => !game.isPast).sort((a, b) => a.dateObj - b.dateObj);
       const past = games.filter(game => game.isPast).sort((a, b) => b.dateObj - a.dateObj);
-      if (route.page === 'home') html = renderHome(upcoming, content, carouselIndex);
+      if (route.page === 'home') {
+        html = renderHome(upcoming, content, carouselIndex);
+        let displayed = upcoming.slice(0, 2).map(game => game.slug).join(',');
+        if (upcoming.length) updateHomeEvents = snapshot => {
+          const ordered = orderHomeGames(upcoming, snapshot);
+          const selected = ordered.slice(0, 2).map(game => game.slug).join(',');
+          if (selected !== displayed) {
+            app.querySelector('[data-home-events]').innerHTML = renderHomeEvents(ordered);
+            displayed = selected;
+          }
+        };
+      }
       if (route.page === 'upcoming' || route.page === 'past') {
         html = renderListing(route.page === 'upcoming' ? upcoming : past, route.page === 'upcoming');
         title = route.page === 'upcoming' ? 'Upcoming Games' : 'Past Games';
@@ -64,11 +76,14 @@ async function render(moveFocus = false) {
     if (!isCurrent()) return;
     galleryObserver.disconnect();
     app.innerHTML = html;
-    if (app.querySelector('[data-ticket-status]') && gamesSource(location.search) === 'games.neon') {
+    if ((updateHomeEvents || app.querySelector('[data-ticket-status]')) && gamesSource(location.search) === 'games.neon') {
       refreshTicketStatuses = async () => {
         // Availability loads independently, so Ticket Tailor never holds up navigation.
         const snapshot = await loadTicketStatuses();
-        if (isCurrent()) applyTicketStatuses(app, snapshot);
+        if (isCurrent()) {
+          updateHomeEvents?.(snapshot);
+          applyTicketStatuses(app, snapshot);
+        }
       };
       refreshTicketStatuses();
     }
