@@ -101,6 +101,12 @@ img[alt="Den of Wolves: New Eden"] {
   background: #ffffff;
 }
 
+/* Fit this wide banner to its artwork instead of adding empty vertical space. */
+.highlight .banner[alt="Den of Wolves: New Eden"] {
+  aspect-ratio: auto;
+  margin-bottom: 0.5rem;
+}
+
 .carousel {
   position: relative;
   margin-bottom: 1.5rem;
